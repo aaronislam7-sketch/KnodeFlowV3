@@ -1,0 +1,56 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knode Learning Flow</title>
+<script>
+  // Feature flags for polish improvements
+  window.ENABLE_POLISH_ANIMATIONS = window.ENABLE_POLISH_ANIMATIONS !== false;
+  window.ENABLE_CHAT_SHELL = window.ENABLE_CHAT_SHELL !== false;
+</script>
+</head>
+<div id="knodewrapper">
+<div id="knodeTileContainer"></div>
+
+<div id="quiz-container" class="fullscreen-wrapper">
+  <div id="results-view" class="explainer-container" style="display:none;">
+    <!-- Float Effects -->
+    <div class="float-icon" id="floatIcon">✔</div>
+    <div class="float-xp" id="floatXP">+10XP</div>
+
+    <!-- Answer Status -->
+    <div id="answer-status" style="display: none; font-weight: bold; font-size: 1.2rem; padding-bottom: 1rem; text-align:center;"></div>
+
+    <!-- Typewriter Output -->
+    <div id="typewriter" class="typewriter-output"></div>
+
+    <!-- Navigation Controls -->
+    <div class="next-container">
+      <button id="next-btn" class="knode-btn" style="display:none;">Next Question</button>
+      <button id="skipbtn" class="knode-btn" style="display:none;">Skip</button>
+      <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
+      <button id="replay-cta-btn" class="knode-btn" style="display:none;">Replay</button>
+  
+    </div>
+
+    <!-- Call to Action -->
+    <div class="cta" id="cta">
+      <button id="save-cta-btn" class="knode-btn" onclick="window.location.href='/log-in'">Save XP & Streak?</button>
+      <button id="replay-cta-btn" class="knode-btn" onclick="replayFeedback()">Replay</button>
+    </div>
+
+    <!-- Audio Permission Prompt -->
+    <div id="audio-init" class="audio-init" style="display:none;">
+      <button id="enable-audio">🔈 Tap to Enable Audio</button>
+    </div>
+
+    <!-- Mascot and Effects -->
+    <div id="confetti-lottie" class="lottie-confetti"></div>
+    <div id="tick-lottie" class="lottie-tick"></div>
+    <img src="https://esp01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fcdn.prod.website-files.com%2F6821cff7a114d28d2d37eb72%2F6842d8a42693e55fa4d185c7_kno-character-teacher.png&data=05%7C02%7C%7C3becfb7ddc7d4f43168808ddd071b317%7C84df9e7fe9f640afb435aaaaaaaaaaaa%7C1%7C0%7C638895908937430561%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=E2SLSBm3O47tirydk9xDS1yCZcqK3QLNFjsqRmOwz0M%3D&reserved=0"
+      alt="Kno Teacher"
+      class="mascot">
+  </div>
+</div>
+</div>
+</html>

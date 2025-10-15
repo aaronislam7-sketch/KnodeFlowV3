@@ -1,0 +1,2183 @@
+<style>
+/**
+ * Frame.css - Knode Learning Flow Polish Framework
+ * Complete embeddable version with all components
+ */
+
+/* ==================== ANIMATION TOKENS ==================== */
+:root {
+  /* Easing */
+  --kn-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --kn-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --kn-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --kn-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Timing */
+  --kn-fast: 180ms;
+  --kn-med: 240ms;
+  --kn-slow: 320ms;
+  
+  /* Frame dimensions - responsive, stable */
+  --kn-frame-h: clamp(480px, 70vh, 760px);
+  --kn-frame-w: min(900px, 100vw - 32px);
+  --kn-frame-padding: clamp(1rem, 3vw, 2rem);
+  
+  /* Chat/Quiz specific */
+  --kn-chat-h: clamp(420px, 65vh, 680px);
+  --kn-mcq-h: clamp(500px, 72vh, 780px);
+  
+  /* Typography scaling */
+  --kn-text-xs: clamp(0.75rem, 2vw, 0.875rem);
+  --kn-text-sm: clamp(0.875rem, 2.2vw, 1rem);
+  --kn-text-base: clamp(1rem, 2.5vw, 1.125rem);
+  --kn-text-lg: clamp(1.125rem, 3vw, 1.5rem);
+  --kn-text-xl: clamp(1.5rem, 4vw, 2.25rem);
+  
+  /* Spacing */
+  --kn-gap-xs: 0.5rem;
+  --kn-gap-sm: 0.75rem;
+  --kn-gap-md: 1rem;
+  --kn-gap-lg: 1.5rem;
+  --kn-gap-xl: 2rem;
+  
+  /* Colors */
+  --knode-primary: #3730a3;
+  --knode-accent: #8b5cf6;
+  --knode-highlight: #fcd34d;
+  --knode-note: #fef3c7;
+  --whiteboard-bg: #fffef7;
+  --pill-bg: #e0e7ff;
+  
+  /* Shadows */
+  --kn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --kn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --kn-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --kn-shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.2);
+  
+  /* Focus ring */
+  --kn-focus-ring: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+/* ==================== REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==================== STABLE FRAME CONTAINERS ==================== */
+.kn-frame {
+  width: var(--kn-frame-w);
+  min-height: var(--kn-frame-h);
+  max-height: var(--kn-frame-h);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  border-radius: 16px;
+  background: white;
+  box-shadow: var(--kn-shadow-md);
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.kn-frame--chat {
+  min-height: var(--kn-chat-h);
+  max-height: var(--kn-chat-h);
+  background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
+}
+
+.kn-frame--mcq {
+  min-height: var(--kn-mcq-h);
+  max-height: var(--kn-mcq-h);
+}
+
+.kn-frame__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--kn-frame-padding);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
+.kn-frame__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kn-frame__content::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+.kn-frame__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kn-frame__header,
+.kn-frame__footer {
+  flex-shrink: 0;
+  background: inherit;
+}
+
+.kn-frame__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: var(--kn-gap-md) var(--kn-frame-padding);
+}
+
+.kn-frame__footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: var(--kn-gap-md) var(--kn-frame-padding);
+}
+
+/* ==================== CHAT SHELL ==================== */
+.kn-chat-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--kn-shadow-lg);
+  background: #fff;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.kn-chat-shell__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--knode-primary), var(--knode-accent));
+  color: white;
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.kn-chat-shell__title {
+  font-size: var(--kn-text-sm);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--kn-gap-xs);
+}
+
+.kn-chat-shell__status {
+  display: flex;
+  gap: var(--kn-gap-xs);
+  align-items: center;
+}
+
+.kn-chat-shell__status-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.kn-chat-shell__status-text {
+  font-size: var(--kn-text-xs);
+  opacity: 0.9;
+}
+
+.kn-chat-shell__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--kn-gap-lg);
+  background: #fafafa;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.kn-chat-shell__input-area {
+  flex-shrink: 0;
+  padding: var(--kn-gap-md);
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  min-height: 72px;
+   position: sticky;
+  bottom: 0;
+  z-index: 10;
+  /* Mobile keyboard safe-area */
+  padding-bottom: max(var(--kn-gap-md), env(safe-area-inset-bottom));
+}
+
+/* ==================== CHAT MESSAGE BUBBLES ==================== */
+.kn-msg {
+  display: flex;
+  gap: var(--kn-gap-sm);
+  margin-bottom: var(--kn-gap-md);
+  align-items: flex-end;
+  animation: kn-msg-enter var(--kn-fast) var(--kn-ease) both;
+  will-change: transform, opacity;
+}
+
+.kn-msg--user {
+  flex-direction: row-reverse;
+}
+
+.kn-chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--kn-text-xs);
+  font-weight: 600;
+  flex-shrink: 0;
+  color: white;
+}
+
+.kn-chat-avatar--bot {
+  background: linear-gradient(135deg, var(--knode-accent), var(--knode-primary));
+}
+
+.kn-chat-avatar--user {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.kn-chat-bubble {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
+  font-size: var(--kn-text-sm);
+  line-height: 1.5;
+  word-wrap: break-word;
+  position: relative;
+  will-change: transform, opacity;
+}
+
+.kn-chat-bubble--bot {
+  background: white;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
+.kn-chat-bubble--user {
+  background: var(--knode-accent);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.kn-typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
+  width: 60px;
+  justify-content: center;
+}
+
+.kn-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9ca3af;
+  animation: kn-typing-bounce 1.4s infinite ease-in-out;
+}
+
+.kn-typing-dot:nth-child(1) { animation-delay: 0s; }
+.kn-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.kn-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes kn-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ==================== MCQ STYLING ==================== */
+.kn-mcq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kn-gap-lg);
+}
+
+.kn-mcq__question {
+  font-size: var(--kn-text-xl);
+  font-weight: 700;
+  color: var(--knode-primary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.kn-mcq__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kn-gap-md);
+}
+
+.kn-mcq-option {
+  position: relative;
+  padding: 1rem 1.5rem;
+  border: 2px solid #d1d5db;
+  border-radius: 999px;
+  background: white;
+  font-size: var(--kn-text-base);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--kn-fast) var(--kn-ease);
+  box-shadow: var(--kn-shadow-sm);
+  will-change: transform, box-shadow;
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  animation: kn-option-enter var(--kn-med) var(--kn-ease) both;
+}
+
+.kn-mcq-option:nth-child(1) { animation-delay: 60ms; }
+.kn-mcq-option:nth-child(2) { animation-delay: 90ms; }
+.kn-mcq-option:nth-child(3) { animation-delay: 120ms; }
+.kn-mcq-option:nth-child(4) { animation-delay: 150ms; }
+.kn-mcq-option:nth-child(5) { animation-delay: 180ms; }
+
+.kn-mcq-option:hover:not(:disabled) {
+  background: #f3f0ff;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--kn-shadow-md);
+}
+
+.kn-mcq-option:focus-visible {
+  outline: none;
+  box-shadow: var(--kn-focus-ring);
+}
+
+.kn-mcq-option:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.kn-mcq-option--selected {
+  background: var(--knode-accent);
+  color: white;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
+
+.kn-mcq-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.kn-mcq-option--correct {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+  animation: kn-feedback-pulse 150ms var(--kn-ease);
+}
+
+.kn-mcq-option--correct::after {
+  content: '✓';
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  color: #10b981;
+  animation: kn-icon-pop 200ms var(--kn-ease-bounce) both;
+}
+
+.kn-mcq-option--incorrect {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+  animation: kn-feedback-pulse 150ms var(--kn-ease);
+}
+
+.kn-mcq-option--incorrect::after {
+  content: '✗';
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  color: #ef4444;
+  animation: kn-icon-pop 200ms var(--kn-ease-bounce) both;
+}
+
+
+/* ==================== FREE-TEXT INPUT ==================== */
+.kn-freetext-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kn-gap-sm);
+  padding: var(--kn-gap-md);
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.kn-freetext-input {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--kn-gap-md);
+  font-family: inherit;
+  font-size: var(--kn-text-sm);
+  line-height: 1.5;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color var(--kn-fast) var(--kn-ease);
+}
+
+.kn-freetext-input:focus {
+  outline: none;
+  border-color: var(--knode-accent);
+  box-shadow: var(--kn-focus-ring);
+}
+
+.kn-freetext-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--kn-gap-sm);
+}
+
+.kn-freetext-hint {
+  font-size: var(--kn-text-xs);
+  color: #f59e0b;
+  font-weight: 500;
+  animation: kn-hint-pulse 0.3s var(--kn-ease);
+}
+
+.kn-freetext-send {
+  padding: 0.75rem 1.5rem;
+  background: var(--knode-accent);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: var(--kn-text-sm);
+  cursor: pointer;
+  transition: all var(--kn-fast) var(--kn-ease);
+  box-shadow: var(--kn-shadow-sm);
+}
+
+.kn-freetext-send:hover:not(:disabled) {
+  background: var(--knode-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--kn-shadow-md);
+}
+
+.kn-freetext-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kn-freetext-counter {
+  font-size: var(--kn-text-xs);
+  color: #6b7280;
+}
+
+@keyframes kn-hint-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ==================== GRADE PREFIX STYLING ==================== */
+.kn-grade-prefix {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: var(--kn-text-sm);
+  margin-bottom: var(--kn-gap-sm);
+  animation: kn-badge-enter 0.3s var(--kn-ease-bounce) both;
+}
+
+.kn-grade-prefix--correct {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.kn-grade-prefix--partial {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.kn-grade-prefix--incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+@keyframes kn-badge-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==================== CHAT SHELL VISIBILITY ==================== */
+.kn-chat-shell--hidden {
+  display: none !important;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.kn-chat-shell[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+/* ==================== FADE TRANSITION ==================== */
+.kn-fade-transition {
+  animation: kn-fade-in 0.5s var(--kn-ease) both;
+}
+
+@keyframes kn-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==================== TYPEWRITER ==================== */
+.kn-typewriter-area {
+  min-height: 240px;
+  font-family: 'Permanent Marker', 'Patrick Hand', 'Comic Sans MS', 'Courier New', monospace;
+  font-size: var(--kn-text-lg);
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+  color: #1f2937;
+  text-shadow: 0.03em 0.02em 0 rgba(0, 0, 0, 0.06);
+  white-space: pre-wrap;
+  position: relative;
+}
+
+.kn-typewriter-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1.2em;
+  background: #f28c5b;
+  margin-left: 2px;
+  transform: translateY(0.15em);
+  animation: kn-cursor-blink 1s infinite;
+  box-shadow: 0 0 4px rgba(242, 140, 91, 0.4);
+}
+
+@keyframes kn-cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ==================== UTILITY ANIMATIONS ==================== */
+@keyframes kn-msg-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kn-option-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes kn-feedback-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes kn-icon-pop {
+  0% { 
+    opacity: 0; 
+    transform: translateY(-50%) scale(0); 
+  }
+  50% { 
+    transform: translateY(-50%) scale(1.2); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(-50%) scale(1); 
+  }
+}
+
+.kn-fade-enter {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.kn-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--kn-med) var(--kn-ease),
+              transform var(--kn-med) var(--kn-ease);
+}
+
+.kn-fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.kn-fade-exit-active {
+  opacity: 0;
+  transform: translateY(-16px);
+  transition: opacity var(--kn-fast) var(--kn-ease),
+              transform var(--kn-fast) var(--kn-ease);
+}
+
+/* ==================== RESPONSIVE & MOBILE ==================== */
+@media (max-width: 768px) {
+  :root {
+    --kn-frame-h: clamp(400px, 80vh, 700px);
+    --kn-frame-padding: 1rem;
+  }
+  
+  .kn-frame {
+    border-radius: 0;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Prevent resize on keyboard open */
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  
+  .kn-chat-shell {
+    /* Fixed outer container - no resize */
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+  
+  .kn-chat-shell__content {
+    /* Internal scroll only */
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* Ensure content is scrollable with keyboard open */
+    max-height: calc(100% - 48px - 72px); /* titlebar - input area */
+  }
+  
+  .kn-chat-bubble {
+    max-width: 85%;
+  }
+  
+  .kn-mcq-option {
+    padding: 0.875rem 1.25rem;
+    min-height: 44px;
+    /* Ensure tappable on mobile */
+    touch-action: manipulation;
+  }
+  
+  /* Prevent option overflow */
+  .kn-mcq__options {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-bottom: var(--kn-gap-lg);
+  }
+  
+  .kn-typewriter-area {
+    min-height: 200px;
+  }
+  .kn-freetext-input {
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 375px) {
+  :root {
+    --kn-frame-padding: 0.75rem;
+  }
+  
+  .kn-chat-bubble {
+    max-width: 90%;
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .kn-mcq-option {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .kn-freetext-input {
+    min-height: 70px;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .kn-chat-shell__titlebar {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .kn-chat-shell__input-area {
+    padding-bottom: max(var(--kn-gap-md), env(safe-area-inset-bottom));
+  }
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+*:focus-visible {
+  outline: 2px solid var(--knode-accent);
+  outline-offset: 2px;
+}
+
+.kn-skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--knode-accent);
+  color: white;
+  padding: 0.75rem 1rem;
+  z-index: 9999;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.kn-skip-link:focus {
+  top: 0;
+}
+
+.kn-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+
+/* Marker/handwritten fonts */
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Patrick+Hand&display=swap');
+:root {
+  --knode-primary: #3730a3;
+  --knode-accent: #8b5cf6;
+  --knode-highlight: #fcd34d;
+  --knode-note: #fef3c7;
+  --whiteboard-bg: #fffef7;
+  --pill-bg: #e0e7ff;
+  --font-family: 'Syncopate', sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background: #f9fafb;
+  color: #1f2937;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
+/* Fix the earlier ID casing so the scroll container works if you use it */
+#knodewrapper{
+  height: 100%;
+  width: 100%;
+}
+
+.knode-tile {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pill group at the top */
+.pill-group {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+   z-index: 2;
+  display: flex;
+   gap: 0.5rem;
+  display: flex;
+  flex-wrap: wrap; /* prevents wrapping */
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0 1rem;
+  overflow-x: auto;
+  max-width: 95vw;
+  scrollbar-width: none; /* hides scrollbar in Firefox */
+  
+}
+
+/* Each pill */
+.pill {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 0.3rem 0.7rem;
+    font-size: clamp(0.65rem, 1.8vw, 0.85rem); /* scales with viewport width */
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pill.duration {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.whiteboard {
+  background: var(--whiteboard-bg);
+  border: 4px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 0 0 3px var(--knode-highlight);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay-btn {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  z-index: 10;
+  display: none;
+}
+
+.whiteboard knode-video {
+  width: 100%;
+  border-radius: 12px;
+  max-height: 400px;
+  object-fit: contain;
+   display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  height: 95vh;
+  position: relative;/* Use this to respect nav spacing */
+}
+
+.video-inner {
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  height: 95%;
+  position: relative;
+  
+}
+
+
+.knoments-header {
+  background: #fefce8;
+  padding: 1rem;
+  font-weight: bold;
+  border: 2px solid var(--knode-highlight);
+  color: var(--knode-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  display: none !important;
+}
+
+.knoments-wrapper {
+  display: none;
+  border: 1px solid #eee;
+  border-top: none;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+}
+
+.scene-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.scene-btn {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--knode-primary);
+  font-weight: bold;
+  border: 2px solid transparent;
+}
+
+.scene-btn.active {
+  background: #dbeafe;
+  border-color: var(--knode-primary);
+}
+
+.knoment-sticky-wrapper {
+  display: none;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.knoment {
+  background: var(--knode-note);
+  flex: 1 1 30%;
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  position: relative;
+}
+
+.copy-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--knode-highlight);
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.summarise-options {
+  margin-top: 1rem;
+  border-top: 2px dashed #e5e7eb;
+  padding-top: 1rem;
+}
+
+.summary-btn {
+  margin: 0.3rem;
+  padding: 0.5rem 1rem;
+  background: var(--pill-bg);
+  color: var(--knode-primary);
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#nxtBtn {
+  display: none;
+  background: var(--knode-accent);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 9999px;
+  margin-top: 2rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.poof-exit {
+  animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@media (max-width: 768px) {
+  .knoment {
+    flex: 1 1 100%;
+  }
+  
+  /* Polish: Mobile optimizations */
+  .quiz-option,
+  .kn-mcq-option {
+    max-width: 95%;
+    min-height: 48px; /* Larger touch targets on mobile */
+  }
+  
+  .quiz-app {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height */
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-top)) {
+  .quiz-app,
+  .explainer-container {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+.speed-toggle {
+  right: 2rem;
+  z-index: 1000;
+  padding: 0.6rem 1rem;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.speed-toggle:hover {
+  background-color: #f5f5f5;
+}
+
+.knode-btn {
+  background-color: #f28c5b;
+  color: white;
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: 'Syncopate', sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.knode-btn:hover {
+  background-color: #e27c4c;
+}
+
+ .quiz-app {
+  background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  max-width: 700px;
+  margin: 2rem auto;
+  animation: fadeIn 0.6s ease;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Polish: Stable height */
+  min-height: var(--kn-mcq-h, clamp(500px, 72vh, 780px));
+  overflow-y: auto;
+}
+
+  #quiz-name {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  #progress-bar {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  #progress-count {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: var(--knode-accent);
+  margin-bottom: 0.5rem;
+}
+
+
+ .progress-track {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+
+  #progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #8b5cf6, #4f46e5);
+  transition: width 0.4s ease;
+}
+
+.quiz-question {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #3730a3;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+
+.quiz-option,
+.kn-mcq-option {
+  border: 2px solid #d1d5db;
+  border-radius: 999px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  margin: 0.6rem auto;
+  text-align: center;
+  background: #fff;
+  transition: all var(--kn-fast, 180ms) var(--kn-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  cursor: pointer;
+  max-width: 80%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  will-change: transform, box-shadow;
+  min-height: 44px; /* Touch target minimum */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-option:hover:not(:disabled),
+.kn-mcq-option:hover:not(:disabled) {
+  background-color: #f3f0ff;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+.quiz-option:focus-visible,
+.kn-mcq-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+.quiz-option:active:not(:disabled),
+.kn-mcq-option:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.quiz-option.selected,
+.kn-mcq-option--selected {
+  background-color: var(--knode-accent);
+  color: #fff;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
+
+.quiz-option:disabled,
+.kn-mcq-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Polish: Feedback states */
+.kn-mcq-option--correct {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+  animation: kn-feedback-pulse 150ms var(--kn-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+.kn-mcq-option--correct::after {
+  content: '✓';
+  position: absolute;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  color: #10b981;
+}
+
+.kn-mcq-option--incorrect {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+  animation: kn-feedback-pulse 150ms var(--kn-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+.kn-mcq-option--incorrect::after {
+  content: '✗';
+  position: absolute;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  color: #ef4444;
+}
+
+@keyframes kn-feedback-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+  .spinner {
+    border: 4px solid #eee;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .explainer-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+    font-family: 'Syncopate', sans-serif;
+    line-height: 1.8;
+    color: #213335;
+    position: relative;
+    display: none;
+    /* Polish: Reserve space for stable layout */
+    min-height: var(--kn-frame-h, clamp(480px, 70vh, 760px));
+      width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  .explainer-container.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #typewriter {
+    font-size: 1.2rem;
+    white-space: pre-wrap;
+    min-height: 240px; /* Increased for better layout stability */
+    font-family: 'Permanent Marker', 'Patrick Hand', 'Comic Sans MS', 'Courier New', monospace;
+    line-height: 1.7;
+    letter-spacing: 0.2px;
+    color: #1f2937;
+    text-shadow: 0.03em 0.02em 0 rgba(0,0,0,0.06);
+    position: relative; /* For stable layout */
+  }
+  
+  .typewriter-cursor,
+  .kn-typewriter-cursor {
+    color: #f28c5b;
+    font-weight: bold;
+    animation: blink 1s infinite;
+    display: inline-block;
+    transform: translateY(2px);
+  }
+  
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  
+  /* Polish: Stable typewriter cursor */
+  .kn-typewriter-cursor {
+    width: 3px;
+    height: 1.2em;
+    background: #f28c5b;
+    margin-left: 2px;
+    box-shadow: 0 0 4px rgba(242, 140, 91, 0.4);
+  }
+
+  .annotate-target {
+    display: inline;
+  }
+
+  .cta {
+    display: none;
+    margin-top: 2rem;
+    text-align: center;
+  }
+
+  .cta button {
+    background-color: #f28c5b;
+    color: white;
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin: 0.3rem;
+  }
+
+  .float-icon, .float-xp {
+    position: absolute;
+    top: 0;
+    right: 0px;
+    font-size: 0rem;
+    padding: 0px;
+    background: #d8f8d2;
+    border-radius: 0px;
+    opacity: 0;
+    animation: floatUp 2.2s forwards;
+  }
+
+  .float-xp {
+    right: 0px;
+  }
+  
+  .quiz-container {
+  position: relative;
+  height: 75vh;
+  width: 75vw;
+}
+
+/* Make the wrapper scroll full height tiles */
+#knodeWrapper {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Each tile snaps full screen */
+
+
+/* Fullscreen background video */
+.knode-video {
+  width: 95%;
+  height: 95%;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+}
+
+
+.mascot {
+  position: absolute;
+  right: -15vw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0rem;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.knode-tile.full-screen-tile {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center; /* Add this if not already present */
+  padding: 0;
+  overflow: hidden; /* Prevent content from overflowing */
+  position: relative;
+}
+
+.quiz-whiteboard {
+  width: 95%;
+  height: 95%;
+   max-width: 100%;
+  max-height: 100%;
+  overflow: hidden; /* Prevent content from overflowing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  position: relative;
+}
+
+.overlay-pills {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  z-index: 10;
+}
+
+.answer-status {
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.next-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.cta-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.4); /* semi-transparent overlay */
+  z-index: 5;
+}
+
+.knode-btn.ghost {
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.audio-init button {
+  background: #f28c5b;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.4rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-family: 'Syncopate', sans-serif;
+}
+
+.overlay-next-btn {
+  background: #000;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-size: 1rem;
+}
+
+@media (max-width: 0px) {
+  .mascot {
+    right: -80px;
+    width: 70px;
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-60px); }
+  }
+  
+  /* 1) Make body the canvas + set a soft brand gradient */
+body{
+  position: relative;               /* enables ::before/::after stacking */
+  background:
+    linear-gradient(135deg, #fff6ef 0%, #fde7da 100%);
+  overflow-x: hidden;
+}
+
+/* 2) Ensure your app sits above the decorative layers */
+#knodewrapper{
+  position: relative;
+  z-index: 1;
+}
+
+/* 3) Fixed, full-height SIDE layers (true gutters) */
+body::before,
+body::after{
+  content: "";
+  position: fixed;                  /* pin to viewport edges */
+  top: 0;
+  bottom: 0;
+  width: clamp(160px, 18vw, 420px); /* real gutter width */
+  pointer-events: none;
+  z-index: 0;                       /* under your content */
+  opacity: 0.22;                    /* super subtle by default */
+  background-repeat: no-repeat;
+  background-size:
+    380px auto, 240px auto, 200px auto;
+  /* tiny drift so it doesn't feel static */
+  animation: gutterFloat 26s linear infinite;
+}
+
+body::before{
+  left: 0;
+  background-position:
+    36px 10vh,
+    18px 48vh,
+    54px 82vh;
+  /* left-side doodles */
+  background-image:
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='380' height='140'>\
+<g fill='none' stroke='%23EACBBB' stroke-width='2'>\
+<path d='M20 70 Q60 10 140 35 T320 70' stroke-linecap='round' stroke-opacity='0.7'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>\
+<g fill='none' stroke='%23F3D8C7' stroke-width='1.5' stroke-linecap='round'>\
+<path d='M40 120 h40 M60 100 v40 M110 120 h40 M130 100 v40' opacity='0.8'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<g fill='none' stroke='%23ECCDBE' stroke-width='2'>\
+<path d='M30 160 C18 100 90 40 150 70 C172 80 176 110 160 140 Z' stroke-dasharray='4 8'/>\
+</g></svg>");
+}
+
+body::after{
+  right: 0;
+  background-position:
+    right 40px top 12vh,
+    right 60px top 52vh,
+    right 26px bottom 8vh;
+  /* right-side doodles */
+  background-image:
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='380' height='140'>\
+<g fill='none' stroke='%23EACBBB' stroke-width='2'>\
+<path d='M20 90 Q140 60 220 80 T340 90' stroke-linecap='round' stroke-opacity='0.6'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>\
+<g fill='none' stroke='%23F1D1C0' stroke-width='1.5'>\
+<circle cx='120' cy='120' r='88' stroke-dasharray='2 10'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<g fill='none' stroke='%23E8C4B1' stroke-width='2'>\
+<path d='M30 170 Q65 130 100 170 T170 170' stroke-linecap='round'/>\
+</g></svg>");
+  animation-direction: reverse;
+}
+
+/* 4) Gentle motion; respect reduced-motion */
+@keyframes gutterFloat{
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(10px); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  body::before,
+  body::after{ animation: none; }
+}
+
+/* 5) Optional: give central cards a subtle lift against the new bg */
+.quiz-whiteboard,
+.video-wrapper,
+.video-inner,
+.explainer-container,
+.quiz-app{
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  background-clip: padding-box;
+}
+
+/* 6) Make sure nothing else paints pure white across full width */
+body, .learning-shell{
+  background-color: transparent !important;
+}
+.quiz-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.quiz-final-cta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: static; /* ensure no absolute carry-over */
+}
+
+.quiz-final .knode-btn {
+  position: static; /* kill any inherited absolute */
+}
+
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centers typewriter content */
+  align-items: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* prevents scroll or growth */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Keep consistent centering on all screens */
+@media (max-width: 768px) {
+  #results-view.explainer-container {
+    height: auto !important;     /* was: clamp(420px, 70vh, 560px) */
+    min-height: 0 !important;    /* optional: remove any min-height pressure */
+    width: 100%;                 /* keep full width */
+    box-sizing: border-box;      /* keep padding from causing a “shift” */
+    /* keep your padding: 1.5rem; (already set) */
+  }
+}
+
+/* Utility Classes */
+.safe-area-inset-top { padding-top: env(safe-area-inset-top); }
+.safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-area-inset-left { padding-left: env(safe-area-inset-left); }
+.safe-area-inset-right { padding-right: env(safe-area-inset-right); }
+
+.overflow-guard {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fluid-text {
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+}
+
+.fluid-heading {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  line-height: 1.2;
+}
+
+.transition-fade {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.transition-slide {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.section-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Mobile overflow guards */
+  .knode-tile {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  
+  .quiz-whiteboard {
+    margin: 0;
+    border-radius: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  .chat-thread {
+    max-height: 60vh;
+    max-height: 60dvh;
+  }
+  
+  .pill-group {
+    max-width: 100vw;
+    padding: 0 1rem;
+  }
+  
+  .knode-btn {
+    min-height: 44px; /* iOS touch target minimum */
+    font-size: 1rem;
+  }
+  
+  .quiz-option {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  
+  /* Ensure no horizontal overflow */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Fix for iOS Safari viewport issues */
+  .knode-tile.full-screen-tile {
+    height: 100vh;
+    height: 100dvh;
+    position: relative;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .transition-fade,
+  .transition-slide,
+  .section-enter,
+  .section-enter-active,
+  .section-exit,
+  .section-exit-active {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .typewriter-cursor {
+    animation: none !important;
+  }
+  
+  .typing-dot {
+    animation: none !important;
+  }
+  
+  .messageSlideIn {
+    animation: none !important;
+  }
+}
+.chat-thread { 
+  background: #fff; 
+  border-radius: 12px; 
+  padding: 16px; 
+  box-shadow: 0 6px 20px rgba(0,0,0,.06); 
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.chat-thread .msg { 
+  margin: 8px 0; 
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: messageSlideIn 0.3s ease forwards;
+}
+
+@keyframes messageSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.chat-avatar.user {
+  background: #f28c5b;
+  color: white;
+}
+
+.chat-avatar.bot {
+  background: #6e8ef5;
+  color: white;
+}
+
+.chat-bubble {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 70%;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.chat-bubble.user {
+  background: #f28c5b;
+  color: white;
+  margin-left: auto;
+}
+
+.chat-bubble.bot {
+  background: #e9ecef;
+  color: #333;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #e9ecef;
+  border-radius: 12px;
+  max-width: 70%;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #6c757d;
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
+}
+
+.scenario-options { 
+  margin-top: 16px; 
+  display: flex; 
+  gap: 12px; 
+  flex-wrap: wrap; 
+}
+* ==================== CHAT SHELL ENHANCEMENTS ==================== */
+/* Note: Base chat shell styles are defined in embeddable-all.html and knodeFlow */
+/* These are additional enhancements for responsive behavior and overflow prevention */
+
+/* Enhanced Responsive Constraints for Chat Shell */
+.kn-frame--chat {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.kn-frame--chat.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+/* Additional Chat Shell Responsive Enhancements */
+.kn-chat-shell {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.kn-chat-shell__content {
+  flex: 1;
+  min-height: 0; /* Critical for flex overflow */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent horizontal overflow in chat bubbles */
+.kn-chat-bubble {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: min(70%, 400px);
+}
+
+/* Ensure MCQ options don't overflow */
+.kn-chat-options {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.kn-chat-option {
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.4;
+}
+
+/* Free text input constraints */
+.kn-freetext-input {
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.kn-freetext-controls {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Chat quiz container constraints */
+.chat-quiz-container {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  max-height: 60vh;
+}
+
+.chat-input-area {
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.scenario-options {
+  max-width: 100%;
+  overflow-x: hidden;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scenario-options .knode-btn {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  padding: 0.6rem 0.8rem;
+}
+
+/* Grade Prefix Styling (not in existing files) */
+.kn-grade-prefix {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  margin-right: 0.5rem;
+}
+
+.kn-grade-prefix--correct {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.kn-grade-prefix--partial {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kn-grade-prefix--incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Mobile-specific overflow fixes */
+@media (max-width: 768px) {
+  .kn-chat-shell {
+    max-height: 80vh;
+    height: 80vh;
+  }
+  
+  .kn-chat-shell__content {
+    max-height: calc(80vh - 120px); /* Account for titlebar and input area */
+  }
+  
+  .chat-thread {
+    max-height: 50vh;
+  }
+  
+  .scenario-options {
+    flex-direction: column;
+  }
+  
+  .scenario-options .knode-btn {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .kn-chat-option {
+    font-size: 0.9rem;
+    padding: 0.7rem 1rem;
+    min-height: 48px;
+  }
+}
+
+/* Prevent any element from causing horizontal overflow */
+.kn-frame--chat *,
+.chat-quiz-container *,
+.kn-chat-shell * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Enhanced scrollbar styling */
+.kn-chat-shell__content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.kn-chat-shell__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kn-chat-shell__content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.kn-chat-shell__content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+/* === KNODE GROWTH MODE OVERRIDES (append at end) ===================== */
+
+/* 1) Let the main frame/container grow with content */
+.kn-frame,
+.kn-frame--chat,
+.kn-frame--mcq {
+  min-height: auto !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* If your content area was the scroller, let it flow now */
+.kn-frame__content {
+  overflow: visible !important;
+}
+
+/* 2) Chat shell grows in normal document flow */
+.kn-chat-shell {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Chat messages flow naturally, no internal scroll jail */
+.kn-chat-shell__content {
+  flex: unset !important;       /* break out of fixed flex height */
+  min-height: unset !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: 0;            /* rely on normal spacing */
+}
+
+/* 3) Input area becomes part of the flow (so MCQ options push page down) */
+.kn-chat-shell__input-area {
+  position: static !important;  /* remove sticky */
+  bottom: auto !important;
+  z-index: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 4) MCQ options: no caps, just flow */
+.kn-mcq__options {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 5) Tiles/whiteboard sometimes cap height; make them fluid */
+.knode-tile.full-screen-tile,
+.quiz-whiteboard {
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* 6) If the chat quiz container had caps, undo them */
+.chat-quiz-container,
+.chat-thread {
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* 7) Results/explainer container should also be able to grow */
+.explainer-container {
+  min-height: 0 !important;     /* allow shorter states */
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 8) Kill mobile rules that reapply fixed heights */
+@media (max-width: 768px) {
+  .kn-frame {
+    max-height: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .kn-chat-shell {
+    max-height: none !important;
+    height: auto !important;
+  }
+  .kn-chat-shell__content {
+    max-height: none !important;
+  }
+  .kn-mcq__options {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .knode-tile.full-screen-tile {
+    height: auto !important;
+  }
+  .quiz-whiteboard {
+    min-height: auto !important;
+  }
+}
+
+</style>
