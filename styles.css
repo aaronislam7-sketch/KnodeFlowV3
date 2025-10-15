@@ -570,6 +570,18 @@
   position: relative;
 }
 
+/* Enhanced annotation styles for whiteboard effect */
+.annotate-target {
+  position: relative;
+  display: inline-block;
+  padding: 0 2px;
+  transition: all 0.3s ease;
+}
+
+.annotate-target:hover {
+  transform: scale(1.05);
+}
+
 .kn-typewriter-cursor {
   display: inline-block;
   width: 3px;
@@ -819,23 +831,46 @@ body {
   overflow: hidden;
 }
 
-/* Pill group at the top */
+/* Pill group at the top - Fixed positioning to protect space */
 .pill-group {
-  position: absolute;
+  position: fixed;
   top: 1rem;
-  left: 1rem;
-   z-index: 2;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
   display: flex;
-   gap: 0.5rem;
-  display: flex;
-  flex-wrap: wrap; /* prevents wrapping */
+  flex-wrap: nowrap;
   gap: 0.5rem;
   justify-content: center;
-  padding: 0 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 90vw;
   overflow-x: auto;
-  max-width: 95vw;
-  scrollbar-width: none; /* hides scrollbar in Firefox */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pill-group::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure content doesn't go under pill bar */
+.knode-tile {
+  padding-top: 4rem; /* Space for pill bar */
+}
+
+/* Hide pill bar on mobile */
+@media (max-width: 768px) {
+  .pill-group {
+    display: none !important;
+  }
   
+  .knode-tile {
+    padding-top: 1rem; /* Reset padding on mobile */
+  }
 }
 
 /* Each pill */
@@ -1255,21 +1290,32 @@ body {
   }
 
   .explainer-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 1rem;
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
     font-family: 'Syncopate', sans-serif;
     line-height: 1.8;
     color: #213335;
     position: relative;
     display: none;
-    /* Polish: Reserve space for stable layout */
-    min-height: var(--kn-frame-h, clamp(480px, 70vh, 760px));
-      width: 100%;
-    max-width: 100%;
-    overflow: hidden;
+    /* Polish: Whiteboard-style presentation */
+    background: linear-gradient(135deg, #fffef7 0%, #fef9f3 100%);
+    border: 3px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 
+      0 0 0 4px var(--knode-highlight),
+      0 10px 40px rgba(0, 0, 0, 0.08);
+    min-height: 400px;
+    width: calc(100% - 2rem);
+    max-width: 800px;
+    overflow: visible;
     box-sizing: border-box;
     transition: opacity 0.3s ease, transform 0.3s ease;
+    /* Whiteboard texture */
+    background-image: 
+      linear-gradient(135deg, #fffef7 0%, #fef9f3 100%),
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f0f0f0' stroke-width='0.5' opacity='0.3'%3E%3Cpath d='M0 50h100M50 0v100'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: cover, 50px 50px;
   }
   
   .explainer-container.show {
@@ -1278,15 +1324,27 @@ body {
   }
 
   #typewriter {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     white-space: pre-wrap;
-    min-height: 240px; /* Increased for better layout stability */
+    min-height: 280px;
     font-family: 'Permanent Marker', 'Patrick Hand', 'Comic Sans MS', 'Courier New', monospace;
-    line-height: 1.7;
-    letter-spacing: 0.2px;
+    line-height: 1.8;
+    letter-spacing: 0.3px;
     color: #1f2937;
-    text-shadow: 0.03em 0.02em 0 rgba(0,0,0,0.06);
-    position: relative; /* For stable layout */
+    text-shadow: 0.05em 0.03em 0 rgba(0,0,0,0.08);
+    position: relative;
+    padding: 1.5rem;
+    /* Handwritten note effect */
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    margin-bottom: 1.5rem;
+    transform: rotate(-0.5deg);
+    transition: transform 0.3s ease;
+  }
+  
+  #typewriter:hover {
+    transform: rotate(0deg);
   }
   
   .typewriter-cursor,
@@ -1380,13 +1438,25 @@ body {
 
 .mascot {
   position: absolute;
-  right: -15vw;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0rem;
+  right: 2rem;
+  bottom: 2rem;
+  width: 120px;
   height: auto;
   z-index: 10;
   pointer-events: none;
+  opacity: 0.8;
+  animation: mascotFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: opacity 0.3s ease;
+}
+
+.mascot:hover {
+  opacity: 1;
+}
+
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .knode-tile.full-screen-tile {
@@ -1418,15 +1488,35 @@ body {
 }
 
 .overlay-pills {
-  position: absolute;
+  position: fixed;
   top: 1rem;
-  left: 1rem;
-  right: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
   justify-content: center;
-  z-index: 10;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 90vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overlay-pills::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide overlay pills on mobile too */
+@media (max-width: 768px) {
+  .overlay-pills {
+    display: none !important;
+  }
 }
 
 .answer-status {

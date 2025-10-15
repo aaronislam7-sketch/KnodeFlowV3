@@ -64,7 +64,40 @@ setTimeout(() => {
   if (!player) return;
 
   player.stop();
-  player.playSequence(rendered, 0);
+  
+  // iOS Audio Fix: Show a button to start playback
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS && rendered.length > 0 && rendered[0].intro_url) {
+    // Create a visual button to start audio
+    const audioInitBtn = document.createElement('button');
+    audioInitBtn.className = 'knode-btn';
+    audioInitBtn.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: #f28c5b; color: white; padding: 1rem 2rem; border-radius: 999px; font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);';
+    audioInitBtn.textContent = '▶️ See My Results';
+    resultsView.appendChild(audioInitBtn);
+    
+    audioInitBtn.onclick = () => {
+      // Remove the button
+      audioInitBtn.remove();
+      
+      // Unlock iOS audio with silent audio
+      const silentAudio = new Audio("https://cdn.jsdelivr.net/gh/anars/blank-audio/1-second-of-silence.mp3");
+      silentAudio.play().then(() => {
+        silentAudio.pause();
+        silentAudio.currentTime = 0;
+        console.log("✅ iOS audio unlocked");
+        
+        // Now play the sequence
+        player.playSequence(rendered, 0);
+      }).catch(e => {
+        console.warn("⚠️ Silent audio failed:", e);
+        // Try to play anyway
+        player.playSequence(rendered, 0);
+      });
+    };
+  } else {
+    // Non-iOS or no audio - play directly
+    player.playSequence(rendered, 0);
+  }
 }, 0);
   })
   .catch(err => {
