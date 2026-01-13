@@ -102,7 +102,7 @@ async function runMCQ({ graph, startId, chatShell }) {
 async function runFreeText({ graph, startId, chatShell, maxQuestions = 2, minHintChars = 40 }) {
   if (!graph || !startId || !chatShell) {
     console.error('runFreeText: Missing required parameters');
-    return;
+    return { transcript: [], userResponses: [], questionCount: 0 };
   }
 
   const transcript = [];
@@ -114,6 +114,12 @@ async function runFreeText({ graph, startId, chatShell, maxQuestions = 2, minHin
   while (currentId && graph[currentId] && questionCount < maxQuestions) {
     const node = graph[currentId];
     questionCount++;
+    
+    // Use unique IDs to avoid conflicts
+    const inputId = `freetext-input-${Date.now()}-${questionCount}`;
+    const sendId = `freetext-send-${Date.now()}-${questionCount}`;
+    const counterId = `freetext-counter-${Date.now()}-${questionCount}`;
+    const hintId = `freetext-hint-${Date.now()}-${questionCount}`;
 
     // Display question
     await chatShell.addMessage(node.prompt, 'bot', { delay: 500 });
@@ -127,73 +133,102 @@ async function runFreeText({ graph, startId, chatShell, maxQuestions = 2, minHin
           class="kn-freetext-input" 
           placeholder="Type your response here... (Shift+Enter for new line)"
           rows="4"
-          id="freetext-input-${questionCount}"
+          id="${inputId}"
         ></textarea>
         <div class="kn-freetext-controls">
-          <div>
-            <span class="kn-freetext-counter" id="freetext-counter-${questionCount}">0 chars</span>
-            <span class="kn-freetext-hint" id="freetext-hint-${questionCount}" style="display:none;"></span>
+          <div class="kn-freetext-meta">
+            <span class="kn-freetext-counter" id="${counterId}">0 chars</span>
+            <span class="kn-freetext-hint" id="${hintId}" style="display:none;"></span>
           </div>
-          <button class="kn-freetext-send" id="freetext-send-${questionCount}">
-            Send
+          <button class="kn-freetext-send" id="${sendId}" type="button">
+            Send →
           </button>
         </div>
       </div>
     `;
     
     inputArea.innerHTML = inputHTML;
-
-    const textarea = document.getElementById(`freetext-input-${questionCount}`);
-    const sendBtn = document.getElementById(`freetext-send-${questionCount}`);
-    const counter = document.getElementById(`freetext-counter-${questionCount}`);
-    const hintEl = document.getElementById(`freetext-hint-${questionCount}`);
     
-    let attemptCount = 0;
-    let hintShown = false;
+    // Wait a frame for DOM to update
+    await new Promise(r => requestAnimationFrame(r));
 
-    // Update character counter
+    const textarea = document.getElementById(inputId);
+    const sendBtn = document.getElementById(sendId);
+    const counter = document.getElementById(counterId);
+    const hintEl = document.getElementById(hintId);
+    
+    // Validate elements exist
+    if (!textarea || !sendBtn) {
+      console.error('runFreeText: Could not find input elements', { inputId, sendId });
+      currentId = node.nextId;
+      continue;
+    }
+    
+    // Focus textarea for better UX
+    textarea.focus();
+
+    // Update character counter on input
     textarea.addEventListener('input', () => {
       const length = textarea.value.trim().length;
-      counter.textContent = `${length} chars`;
+      if (counter) counter.textContent = `${length} chars`;
     });
 
-    // Handle Enter key (submit) vs Shift+Enter (newline)
-    textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendBtn.click();
-      }
-    });
-
-    // Wait for user to submit
+    // Wait for user to submit - using a more robust pattern
     const userResponse = await new Promise((resolve) => {
-      sendBtn.addEventListener('click', () => {
+      let attemptCount = 0;
+      let hintShown = false;
+      
+      const handleSubmit = () => {
         const text = textarea.value.trim();
         attemptCount++;
+        
+        console.log('[FreeText] Submit attempt:', { attemptCount, textLength: text.length, minHintChars });
 
-        // First attempt with < minHintChars - show hint
-        if (attemptCount === 1 && text.length < minHintChars && !hintShown) {
-          hintEl.textContent = `Try adding a bit more detail (aim for > ${minHintChars} chars).`;
-          hintEl.style.display = 'inline-block';
+        // First attempt with short text - show encouraging hint
+        if (attemptCount === 1 && text.length > 0 && text.length < minHintChars && !hintShown) {
+          if (hintEl) {
+            hintEl.textContent = `Great start! Try adding a bit more detail.`;
+            hintEl.style.display = 'inline-block';
+          }
           hintShown = true;
-          return;
+          return; // Give them another chance
         }
 
-        // Second attempt or sufficient length - allow sending
+        // Accept any non-empty response on second attempt or if long enough
         if (text.length > 0) {
           sendBtn.disabled = true;
           textarea.disabled = true;
+          sendBtn.textContent = 'Sent ✓';
           resolve(text);
+          return;
+        }
+        
+        // Empty text - show error hint
+        if (hintEl) {
+          hintEl.textContent = 'Please type a response first.';
+          hintEl.style.display = 'inline-block';
+          hintEl.style.color = '#ef4444';
+        }
+      };
+      
+      // Click handler
+      sendBtn.addEventListener('click', handleSubmit);
+      
+      // Enter key handler (Shift+Enter for newline)
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSubmit();
         }
       });
     });
 
-    // Add user response
+    // Add user response to chat
     userResponses.push(userResponse);
     await chatShell.addMessage(userResponse, 'user');
     transcript.push({ sender: 'user', content: userResponse });
 
-    // Show typing indicator
+    // Show typing indicator for natural feel
     await chatShell.showTypingIndicator({ duration: 800 });
 
     // Move to next node
@@ -201,8 +236,8 @@ async function runFreeText({ graph, startId, chatShell, maxQuestions = 2, minHin
   }
 
   // After max questions reached - show transition message
-  await chatShell.addMessage("Ok let's run through your answers and see what you got...", 'bot');
-  transcript.push({ sender: 'bot', content: "Ok let's run through your answers and see what you got..." });
+  await chatShell.addMessage("Great responses! Let's review what you've shared...", 'bot');
+  transcript.push({ sender: 'bot', content: "Great responses! Let's review what you've shared..." });
 
   // Return transcript and user responses for explainer
   return { transcript, userResponses, questionCount };
