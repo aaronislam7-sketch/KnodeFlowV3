@@ -1,0 +1,5617 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knode Learning Flow</title>
+<script>
+  // Feature flags for polish improvements
+  window.ENABLE_POLISH_ANIMATIONS = window.ENABLE_POLISH_ANIMATIONS !== false;
+  window.ENABLE_CHAT_SHELL = window.ENABLE_CHAT_SHELL !== false;
+</script>
+</head>
+<div id="knodewrapper">
+<div id="knodeTileContainer"></div>
+
+<div id="quiz-container" class="fullscreen-wrapper">
+  <div id="results-view" class="explainer-container" style="display:none;">
+    <!-- Float Effects -->
+    <div class="float-icon" id="floatIcon">✔</div>
+    <div class="float-xp" id="floatXP">+10XP</div>
+
+    <!-- Answer Status -->
+    <div id="answer-status" style="display: none; font-weight: bold; font-size: 1.2rem; padding-bottom: 1rem; text-align:center;"></div>
+
+    <!-- Typewriter Output -->
+    <div id="typewriter" class="typewriter-output"></div>
+
+    <!-- Navigation Controls -->
+    <div class="next-container">
+      <button id="next-btn" class="knode-btn" style="display:none;">Next Question</button>
+      <button id="skipbtn" class="knode-btn" style="display:none;">Skip</button>
+      <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
+      <button id="replay-cta-btn" class="knode-btn" style="display:none;">Replay</button>
+  
+    </div>
+
+    <!-- Call to Action -->
+    <div class="cta" id="cta">
+      <button id="save-cta-btn" class="knode-btn" onclick="window.location.href='/log-in'">Save XP & Streak?</button>
+      <button id="replay-cta-btn" class="knode-btn" onclick="replayFeedback()">Replay</button>
+    </div>
+
+    <!-- Audio Permission Prompt -->
+    <div id="audio-init" class="audio-init" style="display:none;">
+      <button id="enable-audio">🔈 Tap to Enable Audio</button>
+    </div>
+
+    <!-- Mascot and Effects -->
+    <div id="confetti-lottie" class="lottie-confetti"></div>
+    <div id="tick-lottie" class="lottie-tick"></div>
+    <img src="https://esp01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fcdn.prod.website-files.com%2F6821cff7a114d28d2d37eb72%2F6842d8a42693e55fa4d185c7_kno-character-teacher.png&data=05%7C02%7C%7C3becfb7ddc7d4f43168808ddd071b317%7C84df9e7fe9f640afb435aaaaaaaaaaaa%7C1%7C0%7C638895908937430561%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=E2SLSBm3O47tirydk9xDS1yCZcqK3QLNFjsqRmOwz0M%3D&reserved=0"
+      alt="Kno Teacher"
+      class="mascot">
+  </div>
+</div>
+</div>
+</html>
+
+<style>
+/**
+ * Frame.css - Knode Learning Flow Polish Framework
+ * Complete embeddable version with all components
+ */
+
+/* ==================== ANIMATION TOKENS ==================== */
+:root {
+  /* Easing */
+  --kn-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --kn-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --kn-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --kn-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Timing */
+  --kn-fast: 180ms;
+  --kn-med: 240ms;
+  --kn-slow: 320ms;
+  
+  /* Frame dimensions - responsive, stable */
+  --kn-frame-h: clamp(480px, 70vh, 760px);
+  --kn-frame-w: min(900px, 100vw - 32px);
+  --kn-frame-padding: clamp(1rem, 3vw, 2rem);
+  
+  /* Chat/Quiz specific */
+  --kn-chat-h: clamp(420px, 65vh, 680px);
+  --kn-mcq-h: clamp(500px, 72vh, 780px);
+  
+  /* Typography scaling */
+  --kn-text-xs: clamp(0.75rem, 2vw, 0.875rem);
+  --kn-text-sm: clamp(0.875rem, 2.2vw, 1rem);
+  --kn-text-base: clamp(1rem, 2.5vw, 1.125rem);
+  --kn-text-lg: clamp(1.125rem, 3vw, 1.5rem);
+  --kn-text-xl: clamp(1.5rem, 4vw, 2.25rem);
+  
+  /* Spacing */
+  --kn-gap-xs: 0.5rem;
+  --kn-gap-sm: 0.75rem;
+  --kn-gap-md: 1rem;
+  --kn-gap-lg: 1.5rem;
+  --kn-gap-xl: 2rem;
+  
+  /* Colors */
+  --knode-primary: #3730a3;
+  --knode-accent: #8b5cf6;
+  --knode-highlight: #fcd34d;
+  --knode-note: #fef3c7;
+  --whiteboard-bg: #fffef7;
+  --pill-bg: #e0e7ff;
+  
+  /* Shadows */
+  --kn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --kn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --kn-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --kn-shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.2);
+  
+  /* Focus ring */
+  --kn-focus-ring: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+/* ==================== REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==================== STABLE FRAME CONTAINERS ==================== */
+.kn-frame {
+  width: var(--kn-frame-w);
+  min-height: var(--kn-frame-h);
+  max-height: var(--kn-frame-h);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  border-radius: 16px;
+  background: white;
+  box-shadow: var(--kn-shadow-md);
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.kn-frame--chat {
+  min-height: var(--kn-chat-h);
+  max-height: var(--kn-chat-h);
+  background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
+}
+
+.kn-frame--mcq {
+  min-height: var(--kn-mcq-h);
+  max-height: var(--kn-mcq-h);
+}
+
+.kn-frame__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--kn-frame-padding);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
+.kn-frame__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kn-frame__content::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+.kn-frame__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kn-frame__header,
+.kn-frame__footer {
+  flex-shrink: 0;
+  background: inherit;
+}
+
+.kn-frame__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: var(--kn-gap-md) var(--kn-frame-padding);
+}
+
+.kn-frame__footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: var(--kn-gap-md) var(--kn-frame-padding);
+}
+
+/* ==================== CHAT SHELL ==================== */
+.kn-chat-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--kn-shadow-lg);
+  background: #fff;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.kn-chat-shell__titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--knode-primary), var(--knode-accent));
+  color: white;
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.kn-chat-shell__title {
+  font-size: var(--kn-text-sm);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--kn-gap-xs);
+}
+
+.kn-chat-shell__status {
+  display: flex;
+  gap: var(--kn-gap-xs);
+  align-items: center;
+}
+
+.kn-chat-shell__status-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.kn-chat-shell__status-text {
+  font-size: var(--kn-text-xs);
+  opacity: 0.9;
+}
+
+.kn-chat-shell__content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--kn-gap-lg);
+  background: #fafafa;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.kn-chat-shell__input-area {
+  flex-shrink: 0;
+  padding: var(--kn-gap-md);
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  min-height: 72px;
+   position: sticky;
+  bottom: 0;
+  z-index: 10;
+  /* Mobile keyboard safe-area */
+  padding-bottom: max(var(--kn-gap-md), env(safe-area-inset-bottom));
+}
+
+/* ==================== CHAT MESSAGE BUBBLES ==================== */
+.kn-msg {
+  display: flex;
+  gap: var(--kn-gap-sm);
+  margin-bottom: var(--kn-gap-md);
+  align-items: flex-end;
+  animation: kn-msg-enter var(--kn-fast) var(--kn-ease) both;
+  will-change: transform, opacity;
+}
+
+.kn-msg--user {
+  flex-direction: row-reverse;
+}
+
+.kn-chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--kn-text-xs);
+  font-weight: 600;
+  flex-shrink: 0;
+  color: white;
+}
+
+.kn-chat-avatar--bot {
+  background: linear-gradient(135deg, var(--knode-accent), var(--knode-primary));
+}
+
+.kn-chat-avatar--user {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.kn-chat-bubble {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
+  font-size: var(--kn-text-sm);
+  line-height: 1.5;
+  word-wrap: break-word;
+  position: relative;
+  will-change: transform, opacity;
+}
+
+.kn-chat-bubble--bot {
+  background: white;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
+.kn-chat-bubble--user {
+  background: var(--knode-accent);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.kn-typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
+  width: 60px;
+  justify-content: center;
+}
+
+.kn-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9ca3af;
+  animation: kn-typing-bounce 1.4s infinite ease-in-out;
+}
+
+.kn-typing-dot:nth-child(1) { animation-delay: 0s; }
+.kn-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.kn-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes kn-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+/* ==================== MCQ STYLING ==================== */
+.kn-mcq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kn-gap-lg);
+}
+
+.kn-mcq__question {
+  font-size: var(--kn-text-xl);
+  font-weight: 700;
+  color: var(--knode-primary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.kn-mcq__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kn-gap-md);
+}
+
+.kn-mcq-option {
+  position: relative;
+  padding: 1rem 1.5rem;
+  border: 2px solid #d1d5db;
+  border-radius: 999px;
+  background: white;
+  font-size: var(--kn-text-base);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--kn-fast) var(--kn-ease);
+  box-shadow: var(--kn-shadow-sm);
+  will-change: transform, box-shadow;
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  animation: kn-option-enter var(--kn-med) var(--kn-ease) both;
+}
+
+.kn-mcq-option:nth-child(1) { animation-delay: 60ms; }
+.kn-mcq-option:nth-child(2) { animation-delay: 90ms; }
+.kn-mcq-option:nth-child(3) { animation-delay: 120ms; }
+.kn-mcq-option:nth-child(4) { animation-delay: 150ms; }
+.kn-mcq-option:nth-child(5) { animation-delay: 180ms; }
+
+.kn-mcq-option:hover:not(:disabled) {
+  background: #f3f0ff;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--kn-shadow-md);
+}
+
+.kn-mcq-option:focus-visible {
+  outline: none;
+  box-shadow: var(--kn-focus-ring);
+}
+
+.kn-mcq-option:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.kn-mcq-option--selected {
+  background: var(--knode-accent);
+  color: white;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
+
+.kn-mcq-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.kn-mcq-option--correct {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+  animation: kn-feedback-pulse 150ms var(--kn-ease);
+}
+
+.kn-mcq-option--correct::after {
+  content: '✓';
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  color: #10b981;
+  animation: kn-icon-pop 200ms var(--kn-ease-bounce) both;
+}
+
+.kn-mcq-option--incorrect {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+  animation: kn-feedback-pulse 150ms var(--kn-ease);
+}
+
+.kn-mcq-option--incorrect::after {
+  content: '✗';
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  color: #ef4444;
+  animation: kn-icon-pop 200ms var(--kn-ease-bounce) both;
+}
+
+
+/* ==================== FREE-TEXT INPUT ==================== */
+.kn-freetext-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kn-gap-sm);
+  padding: var(--kn-gap-md);
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.kn-freetext-input {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--kn-gap-md);
+  font-family: inherit;
+  font-size: var(--kn-text-sm);
+  line-height: 1.5;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  resize: vertical;
+  transition: border-color var(--kn-fast) var(--kn-ease);
+}
+
+.kn-freetext-input:focus {
+  outline: none;
+  border-color: var(--knode-accent);
+  box-shadow: var(--kn-focus-ring);
+}
+
+.kn-freetext-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--kn-gap-sm);
+}
+
+.kn-freetext-hint {
+  font-size: var(--kn-text-xs);
+  color: #f59e0b;
+  font-weight: 500;
+  animation: kn-hint-pulse 0.3s var(--kn-ease);
+}
+
+.kn-freetext-send {
+  padding: 0.75rem 1.5rem;
+  background: var(--knode-accent);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: var(--kn-text-sm);
+  cursor: pointer;
+  transition: all var(--kn-fast) var(--kn-ease);
+  box-shadow: var(--kn-shadow-sm);
+}
+
+.kn-freetext-send:hover:not(:disabled) {
+  background: var(--knode-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--kn-shadow-md);
+}
+
+.kn-freetext-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kn-freetext-counter {
+  font-size: var(--kn-text-xs);
+  color: #6b7280;
+}
+
+@keyframes kn-hint-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ==================== GRADE PREFIX STYLING ==================== */
+.kn-grade-prefix {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: var(--kn-text-sm);
+  margin-bottom: var(--kn-gap-sm);
+  animation: kn-badge-enter 0.3s var(--kn-ease-bounce) both;
+}
+
+.kn-grade-prefix--correct {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.kn-grade-prefix--partial {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.kn-grade-prefix--incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+@keyframes kn-badge-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==================== CHAT SHELL VISIBILITY ==================== */
+.kn-chat-shell--hidden {
+  display: none !important;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.kn-chat-shell[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+/* ==================== FADE TRANSITION ==================== */
+.kn-fade-transition {
+  animation: kn-fade-in 0.5s var(--kn-ease) both;
+}
+
+@keyframes kn-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==================== TYPEWRITER ==================== */
+.kn-typewriter-area {
+  min-height: 240px;
+  font-family: 'Permanent Marker', 'Patrick Hand', 'Comic Sans MS', 'Courier New', monospace;
+  font-size: var(--kn-text-lg);
+  line-height: 1.7;
+  letter-spacing: 0.2px;
+  color: #1f2937;
+  text-shadow: 0.03em 0.02em 0 rgba(0, 0, 0, 0.06);
+  white-space: pre-wrap;
+  position: relative;
+}
+
+/* Enhanced annotation styles for whiteboard effect */
+.annotate-target {
+  position: relative;
+  display: inline-block;
+  padding: 0 2px;
+  transition: all 0.3s ease;
+}
+
+.annotate-target:hover {
+  transform: scale(1.05);
+}
+
+.kn-typewriter-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1.2em;
+  background: #f28c5b;
+  margin-left: 2px;
+  transform: translateY(0.15em);
+  animation: kn-cursor-blink 1s infinite;
+  box-shadow: 0 0 4px rgba(242, 140, 91, 0.4);
+}
+
+@keyframes kn-cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ==================== UTILITY ANIMATIONS ==================== */
+@keyframes kn-msg-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kn-option-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes kn-feedback-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes kn-icon-pop {
+  0% { 
+    opacity: 0; 
+    transform: translateY(-50%) scale(0); 
+  }
+  50% { 
+    transform: translateY(-50%) scale(1.2); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(-50%) scale(1); 
+  }
+}
+
+.kn-fade-enter {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.kn-fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--kn-med) var(--kn-ease),
+              transform var(--kn-med) var(--kn-ease);
+}
+
+.kn-fade-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.kn-fade-exit-active {
+  opacity: 0;
+  transform: translateY(-16px);
+  transition: opacity var(--kn-fast) var(--kn-ease),
+              transform var(--kn-fast) var(--kn-ease);
+}
+
+/* ==================== RESPONSIVE & MOBILE ==================== */
+@media (max-width: 768px) {
+  :root {
+    --kn-frame-h: clamp(400px, 80vh, 700px);
+    --kn-frame-padding: 1rem;
+  }
+  
+  .kn-frame {
+    border-radius: 0;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Prevent resize on keyboard open */
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  
+  .kn-chat-shell {
+    /* Fixed outer container - no resize */
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+  
+  .kn-chat-shell__content {
+    /* Internal scroll only */
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* Ensure content is scrollable with keyboard open */
+    max-height: calc(100% - 48px - 72px); /* titlebar - input area */
+  }
+  
+  .kn-chat-bubble {
+    max-width: 85%;
+  }
+  
+  .kn-mcq-option {
+    padding: 0.875rem 1.25rem;
+    min-height: 44px;
+    /* Ensure tappable on mobile */
+    touch-action: manipulation;
+  }
+  
+  /* Prevent option overflow */
+  .kn-mcq__options {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-bottom: var(--kn-gap-lg);
+  }
+  
+  .kn-typewriter-area {
+    min-height: 200px;
+  }
+  .kn-freetext-input {
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 375px) {
+  :root {
+    --kn-frame-padding: 0.75rem;
+  }
+  
+  .kn-chat-bubble {
+    max-width: 90%;
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .kn-mcq-option {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .kn-freetext-input {
+    min-height: 70px;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .kn-chat-shell__titlebar {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .kn-chat-shell__input-area {
+    padding-bottom: max(var(--kn-gap-md), env(safe-area-inset-bottom));
+  }
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+*:focus-visible {
+  outline: 2px solid var(--knode-accent);
+  outline-offset: 2px;
+}
+
+.kn-skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--knode-accent);
+  color: white;
+  padding: 0.75rem 1rem;
+  z-index: 9999;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.kn-skip-link:focus {
+  top: 0;
+}
+
+.kn-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+
+/* Marker/handwritten fonts */
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Patrick+Hand&display=swap');
+:root {
+  --knode-primary: #3730a3;
+  --knode-accent: #8b5cf6;
+  --knode-highlight: #fcd34d;
+  --knode-note: #fef3c7;
+  --whiteboard-bg: #fffef7;
+  --pill-bg: #e0e7ff;
+  --font-family: 'Syncopate', sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background: #f9fafb;
+  color: #1f2937;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+
+/* Fix the earlier ID casing so the scroll container works if you use it */
+#knodewrapper{
+  height: 100%;
+  width: 100%;
+}
+
+.knode-tile {
+  height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pill group at the top - Fixed positioning to protect space */
+.pill-group {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 90vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pill-group::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ensure content doesn't go under pill bar */
+.knode-tile {
+  padding-top: 4rem; /* Space for pill bar */
+}
+
+/* Hide pill bar on mobile */
+@media (max-width: 768px) {
+  .pill-group {
+    display: none !important;
+  }
+  
+  .knode-tile {
+    padding-top: 1rem; /* Reset padding on mobile */
+  }
+}
+
+/* Each pill */
+.pill {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 0.3rem 0.7rem;
+    font-size: clamp(0.65rem, 1.8vw, 0.85rem); /* scales with viewport width */
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pill.duration {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.whiteboard {
+  background: var(--whiteboard-bg);
+  border: 4px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 0 0 3px var(--knode-highlight);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay-btn {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  z-index: 10;
+  display: none;
+}
+
+.whiteboard knode-video {
+  width: 100%;
+  border-radius: 12px;
+  max-height: 400px;
+  object-fit: contain;
+   display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  height: 95vh;
+  position: relative;/* Use this to respect nav spacing */
+}
+
+.video-inner {
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  height: 95%;
+  position: relative;
+  
+}
+
+
+.knoments-header {
+  background: #fefce8;
+  padding: 1rem;
+  font-weight: bold;
+  border: 2px solid var(--knode-highlight);
+  color: var(--knode-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  display: none !important;
+}
+
+.knoments-wrapper {
+  display: none;
+  border: 1px solid #eee;
+  border-top: none;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+}
+
+.scene-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.scene-btn {
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--knode-primary);
+  font-weight: bold;
+  border: 2px solid transparent;
+}
+
+.scene-btn.active {
+  background: #dbeafe;
+  border-color: var(--knode-primary);
+}
+
+.knoment-sticky-wrapper {
+  display: none;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.knoment {
+  background: var(--knode-note);
+  flex: 1 1 30%;
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  position: relative;
+}
+
+.copy-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: var(--knode-highlight);
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.summarise-options {
+  margin-top: 1rem;
+  border-top: 2px dashed #e5e7eb;
+  padding-top: 1rem;
+}
+
+.summary-btn {
+  margin: 0.3rem;
+  padding: 0.5rem 1rem;
+  background: var(--pill-bg);
+  color: var(--knode-primary);
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#nxtBtn {
+  display: none;
+  background: var(--knode-accent);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 9999px;
+  margin-top: 2rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.poof-exit {
+  animation: fadeOut 0.3s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@media (max-width: 768px) {
+  .knoment {
+    flex: 1 1 100%;
+  }
+  
+  /* Polish: Mobile optimizations */
+  .quiz-option,
+  .kn-mcq-option {
+    max-width: 95%;
+    min-height: 48px; /* Larger touch targets on mobile */
+  }
+  
+  .quiz-app {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height */
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-top)) {
+  .quiz-app,
+  .explainer-container {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+.speed-toggle {
+  right: 2rem;
+  z-index: 1000;
+  padding: 0.6rem 1rem;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.speed-toggle:hover {
+  background-color: #f5f5f5;
+}
+
+.knode-btn {
+  background-color: #f28c5b;
+  color: white;
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: 'Syncopate', sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.knode-btn:hover {
+  background-color: #e27c4c;
+}
+
+ .quiz-app {
+  background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  max-width: 700px;
+  margin: 2rem auto;
+  animation: fadeIn 0.6s ease;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Polish: Stable height */
+  min-height: var(--kn-mcq-h, clamp(500px, 72vh, 780px));
+  overflow-y: auto;
+}
+
+  #quiz-name {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  #progress-bar {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  #progress-count {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: var(--knode-accent);
+  margin-bottom: 0.5rem;
+}
+
+
+ .progress-track {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+
+  #progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #8b5cf6, #4f46e5);
+  transition: width 0.4s ease;
+}
+
+.quiz-question {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #3730a3;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+
+.quiz-option,
+.kn-mcq-option {
+  border: 2px solid #d1d5db;
+  border-radius: 999px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  margin: 0.6rem auto;
+  text-align: center;
+  background: #fff;
+  transition: all var(--kn-fast, 180ms) var(--kn-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+  cursor: pointer;
+  max-width: 80%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  will-change: transform, box-shadow;
+  min-height: 44px; /* Touch target minimum */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-option:hover:not(:disabled),
+.kn-mcq-option:hover:not(:disabled) {
+  background-color: #f3f0ff;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+.quiz-option:focus-visible,
+.kn-mcq-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+.quiz-option:active:not(:disabled),
+.kn-mcq-option:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.quiz-option.selected,
+.kn-mcq-option--selected {
+  background-color: var(--knode-accent);
+  color: #fff;
+  border-color: var(--knode-accent);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+}
+
+.quiz-option:disabled,
+.kn-mcq-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Polish: Feedback states */
+.kn-mcq-option--correct {
+  background: #d1fae5;
+  border-color: #10b981;
+  color: #065f46;
+  animation: kn-feedback-pulse 150ms var(--kn-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+.kn-mcq-option--correct::after {
+  content: '✓';
+  position: absolute;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  color: #10b981;
+}
+
+.kn-mcq-option--incorrect {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+  animation: kn-feedback-pulse 150ms var(--kn-ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+}
+
+.kn-mcq-option--incorrect::after {
+  content: '✗';
+  position: absolute;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  color: #ef4444;
+}
+
+@keyframes kn-feedback-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+  .spinner {
+    border: 4px solid #eee;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .explainer-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    font-family: 'Syncopate', sans-serif;
+    line-height: 1.8;
+    color: #213335;
+    position: relative;
+    display: none;
+    /* Polish: Whiteboard-style presentation */
+    background: linear-gradient(135deg, #fffef7 0%, #fef9f3 100%);
+    border: 3px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 
+      0 0 0 4px var(--knode-highlight),
+      0 10px 40px rgba(0, 0, 0, 0.08);
+    min-height: 400px;
+    width: calc(100% - 2rem);
+    max-width: 800px;
+    overflow: visible;
+    box-sizing: border-box;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    /* Whiteboard texture */
+    background-image: 
+      linear-gradient(135deg, #fffef7 0%, #fef9f3 100%),
+      url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23f0f0f0' stroke-width='0.5' opacity='0.3'%3E%3Cpath d='M0 50h100M50 0v100'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: cover, 50px 50px;
+  }
+  
+  .explainer-container.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #typewriter {
+    font-size: 1.3rem;
+    white-space: pre-wrap;
+    min-height: 280px;
+    font-family: 'Permanent Marker', 'Patrick Hand', 'Comic Sans MS', 'Courier New', monospace;
+    line-height: 1.8;
+    letter-spacing: 0.3px;
+    color: #1f2937;
+    text-shadow: 0.05em 0.03em 0 rgba(0,0,0,0.08);
+    position: relative;
+    padding: 1.5rem;
+    /* Handwritten note effect */
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    border: 2px dashed rgba(139, 92, 246, 0.3);
+    margin-bottom: 1.5rem;
+    transform: rotate(-0.5deg);
+    transition: transform 0.3s ease;
+  }
+  
+  #typewriter:hover {
+    transform: rotate(0deg);
+  }
+  
+  .typewriter-cursor,
+  .kn-typewriter-cursor {
+    color: #f28c5b;
+    font-weight: bold;
+    animation: blink 1s infinite;
+    display: inline-block;
+    transform: translateY(2px);
+  }
+  
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  
+  /* Polish: Stable typewriter cursor */
+  .kn-typewriter-cursor {
+    width: 3px;
+    height: 1.2em;
+    background: #f28c5b;
+    margin-left: 2px;
+    box-shadow: 0 0 4px rgba(242, 140, 91, 0.4);
+  }
+
+  .annotate-target {
+    display: inline;
+  }
+
+  .cta {
+    display: none;
+    margin-top: 2rem;
+    text-align: center;
+  }
+
+  .cta button {
+    background-color: #f28c5b;
+    color: white;
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin: 0.3rem;
+  }
+
+  .float-icon, .float-xp {
+    position: absolute;
+    top: 0;
+    right: 0px;
+    font-size: 0rem;
+    padding: 0px;
+    background: #d8f8d2;
+    border-radius: 0px;
+    opacity: 0;
+    animation: floatUp 2.2s forwards;
+  }
+
+  .float-xp {
+    right: 0px;
+  }
+  
+  .quiz-container {
+  position: relative;
+  height: 75vh;
+  width: 75vw;
+}
+
+/* Make the wrapper scroll full height tiles */
+#knodeWrapper {
+  height: 100vh;
+  width: 100vw;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Each tile snaps full screen */
+
+
+/* Fullscreen background video */
+.knode-video {
+  width: 95%;
+  height: 95%;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+}
+
+
+.mascot {
+  position: absolute;
+  right: 2rem;
+  bottom: 2rem;
+  width: 120px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.8;
+  animation: mascotFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: opacity 0.3s ease;
+}
+
+.mascot:hover {
+  opacity: 1;
+}
+
+@keyframes mascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.knode-tile.full-screen-tile {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center; /* Add this if not already present */
+  padding: 0;
+  overflow: hidden; /* Prevent content from overflowing */
+  position: relative;
+}
+
+.quiz-whiteboard {
+  width: 95%;
+  height: 95%;
+   max-width: 100%;
+  max-height: 100%;
+  overflow: hidden; /* Prevent content from overflowing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  position: relative;
+}
+
+.overlay-pills {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 90vw;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overlay-pills::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide overlay pills on mobile too */
+@media (max-width: 768px) {
+  .overlay-pills {
+    display: none !important;
+  }
+}
+
+.answer-status {
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.next-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.cta-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(0, 0, 0, 0.4); /* semi-transparent overlay */
+  z-index: 5;
+}
+
+.knode-btn.ghost {
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+.audio-init button {
+  background: #f28c5b;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.4rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-family: 'Syncopate', sans-serif;
+}
+
+.overlay-next-btn {
+  background: #000;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-size: 1rem;
+}
+
+@media (max-width: 0px) {
+  .mascot {
+    right: -80px;
+    width: 70px;
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-60px); }
+  }
+  
+  /* 1) Make body the canvas + set a soft brand gradient */
+body{
+  position: relative;               /* enables ::before/::after stacking */
+  background:
+    linear-gradient(135deg, #fff6ef 0%, #fde7da 100%);
+  overflow-x: hidden;
+}
+
+/* 2) Ensure your app sits above the decorative layers */
+#knodewrapper{
+  position: relative;
+  z-index: 1;
+}
+
+/* 3) Fixed, full-height SIDE layers (true gutters) */
+body::before,
+body::after{
+  content: "";
+  position: fixed;                  /* pin to viewport edges */
+  top: 0;
+  bottom: 0;
+  width: clamp(160px, 18vw, 420px); /* real gutter width */
+  pointer-events: none;
+  z-index: 0;                       /* under your content */
+  opacity: 0.22;                    /* super subtle by default */
+  background-repeat: no-repeat;
+  background-size:
+    380px auto, 240px auto, 200px auto;
+  /* tiny drift so it doesn't feel static */
+  animation: gutterFloat 26s linear infinite;
+}
+
+body::before{
+  left: 0;
+  background-position:
+    36px 10vh,
+    18px 48vh,
+    54px 82vh;
+  /* left-side doodles */
+  background-image:
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='380' height='140'>\
+<g fill='none' stroke='%23EACBBB' stroke-width='2'>\
+<path d='M20 70 Q60 10 140 35 T320 70' stroke-linecap='round' stroke-opacity='0.7'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>\
+<g fill='none' stroke='%23F3D8C7' stroke-width='1.5' stroke-linecap='round'>\
+<path d='M40 120 h40 M60 100 v40 M110 120 h40 M130 100 v40' opacity='0.8'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<g fill='none' stroke='%23ECCDBE' stroke-width='2'>\
+<path d='M30 160 C18 100 90 40 150 70 C172 80 176 110 160 140 Z' stroke-dasharray='4 8'/>\
+</g></svg>");
+}
+
+body::after{
+  right: 0;
+  background-position:
+    right 40px top 12vh,
+    right 60px top 52vh,
+    right 26px bottom 8vh;
+  /* right-side doodles */
+  background-image:
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='380' height='140'>\
+<g fill='none' stroke='%23EACBBB' stroke-width='2'>\
+<path d='M20 90 Q140 60 220 80 T340 90' stroke-linecap='round' stroke-opacity='0.6'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>\
+<g fill='none' stroke='%23F1D1C0' stroke-width='1.5'>\
+<circle cx='120' cy='120' r='88' stroke-dasharray='2 10'/>\
+</g></svg>"),
+    url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<g fill='none' stroke='%23E8C4B1' stroke-width='2'>\
+<path d='M30 170 Q65 130 100 170 T170 170' stroke-linecap='round'/>\
+</g></svg>");
+  animation-direction: reverse;
+}
+
+/* 4) Gentle motion; respect reduced-motion */
+@keyframes gutterFloat{
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(10px); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  body::before,
+  body::after{ animation: none; }
+}
+
+/* 5) Optional: give central cards a subtle lift against the new bg */
+.quiz-whiteboard,
+.video-wrapper,
+.video-inner,
+.explainer-container,
+.quiz-app{
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  background-clip: padding-box;
+}
+
+/* 6) Make sure nothing else paints pure white across full width */
+body, .learning-shell{
+  background-color: transparent !important;
+}
+.quiz-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.quiz-final-cta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: static; /* ensure no absolute carry-over */
+}
+
+.quiz-final .knode-btn {
+  position: static; /* kill any inherited absolute */
+}
+
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centers typewriter content */
+  align-items: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden; /* prevents scroll or growth */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Keep consistent centering on all screens */
+@media (max-width: 768px) {
+  #results-view.explainer-container {
+    height: auto !important;     /* was: clamp(420px, 70vh, 560px) */
+    min-height: 0 !important;    /* optional: remove any min-height pressure */
+    width: 100%;                 /* keep full width */
+    box-sizing: border-box;      /* keep padding from causing a “shift” */
+    /* keep your padding: 1.5rem; (already set) */
+  }
+}
+
+/* Utility Classes */
+.safe-area-inset-top { padding-top: env(safe-area-inset-top); }
+.safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-area-inset-left { padding-left: env(safe-area-inset-left); }
+.safe-area-inset-right { padding-right: env(safe-area-inset-right); }
+
+.overflow-guard {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fluid-text {
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+}
+
+.fluid-heading {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  line-height: 1.2;
+}
+
+.transition-fade {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.transition-slide {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.section-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Mobile overflow guards */
+  .knode-tile {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  
+  .quiz-whiteboard {
+    margin: 0;
+    border-radius: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  .chat-thread {
+    max-height: 60vh;
+    max-height: 60dvh;
+  }
+  
+  .pill-group {
+    max-width: 100vw;
+    padding: 0 1rem;
+  }
+  
+  .knode-btn {
+    min-height: 44px; /* iOS touch target minimum */
+    font-size: 1rem;
+  }
+  
+  .quiz-option {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  
+  /* Ensure no horizontal overflow */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Fix for iOS Safari viewport issues */
+  .knode-tile.full-screen-tile {
+    height: 100vh;
+    height: 100dvh;
+    position: relative;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .transition-fade,
+  .transition-slide,
+  .section-enter,
+  .section-enter-active,
+  .section-exit,
+  .section-exit-active {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .typewriter-cursor {
+    animation: none !important;
+  }
+  
+  .typing-dot {
+    animation: none !important;
+  }
+  
+  .messageSlideIn {
+    animation: none !important;
+  }
+}
+.chat-thread { 
+  background: #fff; 
+  border-radius: 12px; 
+  padding: 16px; 
+  box-shadow: 0 6px 20px rgba(0,0,0,.06); 
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.chat-thread .msg { 
+  margin: 8px 0; 
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: messageSlideIn 0.3s ease forwards;
+}
+
+@keyframes messageSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.chat-avatar.user {
+  background: #f28c5b;
+  color: white;
+}
+
+.chat-avatar.bot {
+  background: #6e8ef5;
+  color: white;
+}
+
+.chat-bubble {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 70%;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.chat-bubble.user {
+  background: #f28c5b;
+  color: white;
+  margin-left: auto;
+}
+
+.chat-bubble.bot {
+  background: #e9ecef;
+  color: #333;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #e9ecef;
+  border-radius: 12px;
+  max-width: 70%;
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #6c757d;
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
+}
+
+.scenario-options { 
+  margin-top: 16px; 
+  display: flex; 
+  gap: 12px; 
+  flex-wrap: wrap; 
+}
+* ==================== CHAT SHELL ENHANCEMENTS ==================== */
+/* Note: Base chat shell styles are defined in embeddable-all.html and knodeFlow */
+/* These are additional enhancements for responsive behavior and overflow prevention */
+
+/* Enhanced Responsive Constraints for Chat Shell */
+.kn-frame--chat {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.kn-frame--chat.hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+/* Additional Chat Shell Responsive Enhancements */
+.kn-chat-shell {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.kn-chat-shell__content {
+  flex: 1;
+  min-height: 0; /* Critical for flex overflow */
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent horizontal overflow in chat bubbles */
+.kn-chat-bubble {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: min(70%, 400px);
+}
+
+/* Ensure MCQ options don't overflow */
+.kn-chat-options {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.kn-chat-option {
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.4;
+}
+
+/* Free text input constraints */
+.kn-freetext-input {
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.kn-freetext-controls {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Chat quiz container constraints */
+.chat-quiz-container {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  max-height: 60vh;
+}
+
+.chat-input-area {
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.scenario-options {
+  max-width: 100%;
+  overflow-x: hidden;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.scenario-options .knode-btn {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  padding: 0.6rem 0.8rem;
+}
+
+/* Grade Prefix Styling (not in existing files) */
+.kn-grade-prefix {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  margin-right: 0.5rem;
+}
+
+.kn-grade-prefix--correct {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.kn-grade-prefix--partial {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kn-grade-prefix--incorrect {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Mobile-specific overflow fixes */
+@media (max-width: 768px) {
+  .kn-chat-shell {
+    max-height: 80vh;
+    height: 80vh;
+  }
+  
+  .kn-chat-shell__content {
+    max-height: calc(80vh - 120px); /* Account for titlebar and input area */
+  }
+  
+  .chat-thread {
+    max-height: 50vh;
+  }
+  
+  .scenario-options {
+    flex-direction: column;
+  }
+  
+  .scenario-options .knode-btn {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .kn-chat-option {
+    font-size: 0.9rem;
+    padding: 0.7rem 1rem;
+    min-height: 48px;
+  }
+}
+
+/* Prevent any element from causing horizontal overflow */
+.kn-frame--chat *,
+.chat-quiz-container *,
+.kn-chat-shell * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Enhanced scrollbar styling */
+.kn-chat-shell__content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.kn-chat-shell__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kn-chat-shell__content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.kn-chat-shell__content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+/* === KNODE GROWTH MODE OVERRIDES (append at end) ===================== */
+
+/* 1) Let the main frame/container grow with content */
+.kn-frame,
+.kn-frame--chat,
+.kn-frame--mcq {
+  min-height: auto !important;
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* If your content area was the scroller, let it flow now */
+.kn-frame__content {
+  overflow: visible !important;
+}
+
+/* 2) Chat shell grows in normal document flow */
+.kn-chat-shell {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Chat messages flow naturally, no internal scroll jail */
+.kn-chat-shell__content {
+  flex: unset !important;       /* break out of fixed flex height */
+  min-height: unset !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: 0;            /* rely on normal spacing */
+}
+
+/* 3) Input area becomes part of the flow (so MCQ options push page down) */
+.kn-chat-shell__input-area {
+  position: static !important;  /* remove sticky */
+  bottom: auto !important;
+  z-index: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 4) MCQ options: no caps, just flow */
+.kn-mcq__options {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 5) Tiles/whiteboard sometimes cap height; make them fluid */
+.knode-tile.full-screen-tile,
+.quiz-whiteboard {
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* 6) If the chat quiz container had caps, undo them */
+.chat-quiz-container,
+.chat-thread {
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* 7) Results/explainer container should also be able to grow */
+.explainer-container {
+  min-height: 0 !important;     /* allow shorter states */
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 8) Kill mobile rules that reapply fixed heights */
+@media (max-width: 768px) {
+  .kn-frame {
+    max-height: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .kn-chat-shell {
+    max-height: none !important;
+    height: auto !important;
+  }
+  .kn-chat-shell__content {
+    max-height: none !important;
+  }
+  .kn-mcq__options {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .knode-tile.full-screen-tile {
+    height: auto !important;
+  }
+  .quiz-whiteboard {
+    min-height: auto !important;
+  }
+}
+
+</style>
+
+<!-- Polish Framework Scripts - Embedded for Webflow compatibility -->
+<script>
+/**
+ * KNODE LEARNING FLOW - COMPLETE EMBEDDABLE JAVASCRIPT
+ * Includes: Animations, ChatShell, and Typewriter
+ * NO external dependencies - everything is self-contained
+ */
+
+(function(window) {
+  'use strict';
+
+  // ==================== ANIMATIONS MODULE ====================
+  
+  const isAnimationEnabled = () => {
+    if (window.ENABLE_POLISH_ANIMATIONS === false) return false;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return !prefersReducedMotion;
+  };
+
+  const ANIMATION_CONFIG = {
+    duration: {
+      fast: 180,
+      medium: 240,
+      slow: 320
+    },
+    easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+    easingIn: 'cubic-bezier(0.4, 0, 1, 1)',
+    easingOut: 'cubic-bezier(0, 0, 0.2, 1)',
+    easingBounce: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+  };
+
+  function slideFadeEnter(element, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      element.style.opacity = '1';
+      element.style.transform = 'none';
+      return Promise.resolve();
+    }
+
+    const {
+      duration = ANIMATION_CONFIG.duration.medium,
+      easing = ANIMATION_CONFIG.easing,
+      distance = 16,
+      delay = 0
+    } = options;
+
+    return new Promise(resolve => {
+      element.style.opacity = '0';
+      element.style.transform = `translateY(${distance}px)`;
+      element.style.transition = 'none';
+      element.offsetHeight;
+      element.style.transition = `opacity ${duration}ms ${easing}, transform ${duration}ms ${easing}`;
+      
+      setTimeout(() => {
+        element.style.opacity = '1';
+        element.style.transform = 'translateY(0)';
+        setTimeout(() => {
+          element.style.transition = '';
+          resolve();
+        }, duration);
+      }, delay);
+    });
+  }
+
+  function slideFadeExit(element, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      element.style.display = 'none';
+      return Promise.resolve();
+    }
+
+    const {
+      duration = ANIMATION_CONFIG.duration.fast,
+      easing = ANIMATION_CONFIG.easing,
+      distance = -16,
+      delay = 0
+    } = options;
+
+    return new Promise(resolve => {
+      element.style.transition = `opacity ${duration}ms ${easing}, transform ${duration}ms ${easing}`;
+      setTimeout(() => {
+        element.style.opacity = '0';
+        element.style.transform = `translateY(${distance}px)`;
+        setTimeout(() => {
+          element.style.display = 'none';
+          element.style.transition = '';
+          resolve();
+        }, duration);
+      }, delay);
+    });
+  }
+
+  function scaleFadeEnter(element, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      element.style.opacity = '1';
+      element.style.transform = 'none';
+      return Promise.resolve();
+    }
+
+    const {
+      duration = ANIMATION_CONFIG.duration.medium,
+      easing = ANIMATION_CONFIG.easing,
+      scale = 0.95,
+      delay = 0
+    } = options;
+
+    return new Promise(resolve => {
+      element.style.opacity = '0';
+      element.style.transform = `scale(${scale})`;
+      element.style.transition = 'none';
+      element.offsetHeight;
+      element.style.transition = `opacity ${duration}ms ${easing}, transform ${duration}ms ${easing}`;
+      
+      setTimeout(() => {
+        element.style.opacity = '1';
+        element.style.transform = 'scale(1)';
+        setTimeout(() => {
+          element.style.transition = '';
+          resolve();
+        }, duration);
+      }, delay);
+    });
+  }
+
+  function scaleFadeExit(element, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      element.style.display = 'none';
+      return Promise.resolve();
+    }
+
+    const {
+      duration = ANIMATION_CONFIG.duration.fast,
+      easing = ANIMATION_CONFIG.easing,
+      scale = 0.95,
+      delay = 0
+    } = options;
+
+    return new Promise(resolve => {
+      element.style.transition = `opacity ${duration}ms ${easing}, transform ${duration}ms ${easing}`;
+      setTimeout(() => {
+        element.style.opacity = '0';
+        element.style.transform = `scale(${scale})`;
+        setTimeout(() => {
+          element.style.display = 'none';
+          element.style.transition = '';
+          resolve();
+        }, duration);
+      }, delay);
+    });
+  }
+
+  function staggerReveal(elements, options = {}) {
+    if (!elements || elements.length === 0) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      elements.forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+      return Promise.resolve();
+    }
+
+    const {
+      duration = ANIMATION_CONFIG.duration.medium,
+      easing = ANIMATION_CONFIG.easing,
+      stagger = 60,
+      distance = 12
+    } = options;
+
+    const promises = Array.from(elements).map((element, index) => {
+      return slideFadeEnter(element, {
+        duration,
+        easing,
+        distance,
+        delay: index * stagger
+      });
+    });
+
+    return Promise.all(promises);
+  }
+
+  function feedbackPulse(element, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) return Promise.resolve();
+
+    const {
+      duration = 150,
+      scale = 1.02
+    } = options;
+
+    return new Promise(resolve => {
+      const keyframes = [
+        { transform: 'scale(1)' },
+        { transform: `scale(${scale})` },
+        { transform: 'scale(1)' }
+      ];
+      const timing = {
+        duration,
+        easing: ANIMATION_CONFIG.easing,
+        fill: 'forwards'
+      };
+      element.animate(keyframes, timing).onfinish = () => resolve();
+    });
+  }
+
+  function iconPop(element, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      element.style.opacity = '1';
+      element.style.transform = 'scale(1)';
+      return Promise.resolve();
+    }
+
+    const {
+      duration = 200,
+      easing = ANIMATION_CONFIG.easingBounce
+    } = options;
+
+    return new Promise(resolve => {
+      const keyframes = [
+        { opacity: 0, transform: 'scale(0)' },
+        { opacity: 1, transform: 'scale(1.2)', offset: 0.5 },
+        { opacity: 1, transform: 'scale(1)' }
+      ];
+      const timing = {
+        duration,
+        easing,
+        fill: 'forwards'
+      };
+      element.animate(keyframes, timing).onfinish = () => resolve();
+    });
+  }
+
+  function animateOnVisible(element, callback, options = {}) {
+    if (!element) return;
+    if (!isAnimationEnabled()) {
+      callback(element);
+      return;
+    }
+
+    const {
+      threshold = 0.1,
+      rootMargin = '50px'
+    } = options;
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            callback(entry.target);
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold, rootMargin }
+    );
+
+    observer.observe(element);
+  }
+
+  function animateAllOnVisible(elements, callback, options = {}) {
+    if (!elements || elements.length === 0) return;
+    Array.from(elements).forEach(element => {
+      animateOnVisible(element, callback, options);
+    });
+  }
+
+  function typingShimmer(element) {
+    if (!element) return null;
+    if (!isAnimationEnabled()) return null;
+
+    const keyframes = [
+      { opacity: 0.4 },
+      { opacity: 1 },
+      { opacity: 0.4 }
+    ];
+    const timing = {
+      duration: 1400,
+      easing: 'ease-in-out',
+      iterations: Infinity
+    };
+    return element.animate(keyframes, timing);
+  }
+
+  function heightTransition(element, targetHeight, options = {}) {
+    if (!element) return Promise.resolve();
+    if (!isAnimationEnabled()) {
+      element.style.height = `${targetHeight}px`;
+      return Promise.resolve();
+    }
+
+    const {
+      duration = ANIMATION_CONFIG.duration.medium,
+      easing = ANIMATION_CONFIG.easing
+    } = options;
+
+    return new Promise(resolve => {
+      element.style.transition = `height ${duration}ms ${easing}`;
+      element.style.height = `${targetHeight}px`;
+      setTimeout(() => {
+        element.style.transition = '';
+        resolve();
+      }, duration);
+    });
+  }
+
+  function applyEnter(element, options = {}) {
+    return slideFadeEnter(element, options);
+  }
+
+  function applyExit(element, options = {}) {
+    return slideFadeExit(element, options);
+  }
+
+  // Export Animations
+  window.KnodeAnimations = {
+    slideFadeEnter,
+    slideFadeExit,
+    scaleFadeEnter,
+    scaleFadeExit,
+    staggerReveal,
+    feedbackPulse,
+    iconPop,
+    typingShimmer,
+    heightTransition,
+    animateOnVisible,
+    animateAllOnVisible,
+    applyEnter,
+    applyExit,
+    config: ANIMATION_CONFIG,
+    isEnabled: isAnimationEnabled
+  };
+
+  window.applyEnter = applyEnter;
+  window.applyExit = applyExit;
+
+  // ==================== CHAT SHELL MODULE ====================
+
+  class ChatShell {
+    constructor(container, options = {}) {
+      this.container = container;
+      this.options = {
+        title: options.title || 'Chat',
+        statusText: options.statusText || 'Online',
+        showStatus: options.showStatus !== false,
+        autoScroll: options.autoScroll !== false,
+        enableAnimations: window.ENABLE_CHAT_SHELL !== false,
+        ...options
+      };
+
+      this.messages = [];
+      this.typingAnimation = null;
+      this.shell = null;
+      this.contentArea = null;
+      this.init();
+    }
+
+    init() {
+      if (!this.container) {
+        console.error('ChatShell: Container element not found');
+        return;
+      }
+      this.render();
+      this.setupEventListeners();
+    }
+
+    render() {
+      const shellHTML = `
+        <div class="kn-chat-shell">
+          <div class="kn-chat-shell__titlebar">
+            <div class="kn-chat-shell__title">
+              <span>${this.escapeHtml(this.options.title)}</span>
+            </div>
+            ${this.options.showStatus ? `
+              <div class="kn-chat-shell__status">
+                <div class="kn-chat-shell__status-icon" aria-hidden="true"></div>
+                <span class="kn-chat-shell__status-text">${this.escapeHtml(this.options.statusText)}</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="kn-chat-shell__content" role="log" aria-live="polite" aria-label="Chat messages"></div>
+          <div class="kn-chat-shell__input-area"></div>
+        </div>
+      `;
+
+      this.container.innerHTML = shellHTML;
+      this.shell = this.container.querySelector('.kn-chat-shell');
+      this.contentArea = this.shell.querySelector('.kn-chat-shell__content');
+      this.inputArea = this.shell.querySelector('.kn-chat-shell__input-area');
+    }
+
+    addMessage(content, sender = 'bot', options = {}) {
+      return new Promise((resolve) => {
+        const { delay = 0, animate = this.options.enableAnimations } = options;
+        setTimeout(() => {
+          const messageEl = this.createMessageElement(content, sender);
+          this.contentArea.appendChild(messageEl);
+          this.messages.push({ content, sender, element: messageEl });
+          if (animate && window.KnodeAnimations) {
+            window.KnodeAnimations.slideFadeEnter(messageEl, { duration: 180 });
+          }
+          if (this.options.autoScroll) {
+            this.scrollToBottom();
+          }
+          resolve(messageEl);
+        }, delay);
+      });
+    }
+
+    createMessageElement(content, sender) {
+      const messageEl = document.createElement('div');
+      messageEl.className = `kn-msg kn-msg--${sender}`;
+      messageEl.setAttribute('role', 'article');
+
+      const avatar = document.createElement('div');
+      avatar.className = `kn-chat-avatar kn-chat-avatar--${sender}`;
+      avatar.setAttribute('aria-hidden', 'true');
+      avatar.textContent = sender === 'user' ? 'U' : 'B';
+
+      const bubble = document.createElement('div');
+      bubble.className = `kn-chat-bubble kn-chat-bubble--${sender}`;
+      bubble.textContent = content;
+
+      messageEl.appendChild(avatar);
+      messageEl.appendChild(bubble);
+      return messageEl;
+    }
+
+    showTypingIndicator(options = {}) {
+      return new Promise((resolve) => {
+        const { delay = 0, duration = 1500 } = options;
+        setTimeout(() => {
+          this.removeTypingIndicator();
+          const typingEl = document.createElement('div');
+          typingEl.className = 'kn-msg kn-msg--typing';
+          typingEl.setAttribute('aria-label', 'Bot is typing');
+          typingEl.innerHTML = `
+            <div class="kn-chat-avatar kn-chat-avatar--bot" aria-hidden="true">B</div>
+            <div class="kn-typing-indicator">
+              <div class="kn-typing-dot"></div>
+              <div class="kn-typing-dot"></div>
+              <div class="kn-typing-dot"></div>
+            </div>
+          `;
+          this.contentArea.appendChild(typingEl);
+          if (this.options.enableAnimations && window.KnodeAnimations) {
+            window.KnodeAnimations.slideFadeEnter(typingEl, { duration: 150 });
+          }
+          if (this.options.autoScroll) {
+            this.scrollToBottom();
+          }
+          if (duration > 0) {
+            setTimeout(() => {
+              this.removeTypingIndicator();
+              resolve();
+            }, duration);
+          } else {
+            resolve();
+          }
+        }, delay);
+      });
+    }
+
+    removeTypingIndicator() {
+      const typingEl = this.contentArea.querySelector('.kn-msg--typing');
+      if (typingEl) {
+        if (this.options.enableAnimations && window.KnodeAnimations) {
+          window.KnodeAnimations.slideFadeExit(typingEl, { duration: 120 }).then(() => {
+            typingEl.remove();
+          });
+        } else {
+          typingEl.remove();
+        }
+      }
+    }
+
+    async addSequentialMessages(messages) {
+      for (const msg of messages) {
+        const { content, sender = 'bot', delay = 1000, typingDelay = 1500 } = msg;
+        if (delay > 0) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        if (sender === 'bot' && typingDelay > 0) {
+          await this.showTypingIndicator({ duration: typingDelay });
+        }
+        await this.addMessage(content, sender);
+      }
+    }
+
+    setInputArea(content) {
+      if (typeof content === 'string') {
+        this.inputArea.innerHTML = content;
+      } else if (content instanceof HTMLElement) {
+        this.inputArea.innerHTML = '';
+        this.inputArea.appendChild(content);
+      }
+    }
+
+    addOptions(options) {
+      const optionsHTML = `
+        <div class="kn-chat-options">
+          ${options.map(opt => `
+            <button class="kn-mcq-option kn-chat-option" data-id="${opt.id}" type="button">
+              ${this.escapeHtml(opt.label)}
+            </button>
+          `).join('')}
+        </div>
+      `;
+      this.inputArea.innerHTML = optionsHTML;
+      const optionButtons = this.inputArea.querySelectorAll('.kn-chat-option');
+      if (this.options.enableAnimations && window.KnodeAnimations) {
+        window.KnodeAnimations.staggerReveal(optionButtons, { stagger: 60 });
+      }
+      optionButtons.forEach((btn, index) => {
+        const option = options[index];
+        if (option.callback) {
+          btn.addEventListener('click', () => {
+            option.callback(option.id, btn);
+            optionButtons.forEach(b => b.disabled = true);
+          });
+        }
+      });
+    }
+
+    scrollToBottom(smooth = true) {
+      if (!this.contentArea) return;
+      requestAnimationFrame(() => {
+        this.contentArea.scrollTo({
+          top: this.contentArea.scrollHeight,
+          behavior: smooth ? 'smooth' : 'auto'
+        });
+      });
+    }
+
+    clearMessages() {
+      if (this.contentArea) {
+        this.contentArea.innerHTML = '';
+      }
+      this.messages = [];
+    }
+
+    setupEventListeners() {
+      if (this.options.autoScroll && this.contentArea) {
+        const observer = new MutationObserver(() => {
+          this.scrollToBottom();
+        });
+        observer.observe(this.contentArea, {
+          childList: true,
+          subtree: true
+        });
+        this.mutationObserver = observer;
+      }
+    }
+
+    destroy() {
+      if (this.mutationObserver) {
+        this.mutationObserver.disconnect();
+      }
+      if (this.typingAnimation) {
+        this.typingAnimation.cancel();
+      }
+      if (this.shell) {
+        this.shell.remove();
+      }
+      this.messages = [];
+    }
+
+    escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    setTitle(title) {
+      const titleEl = this.shell.querySelector('.kn-chat-shell__title span');
+      if (titleEl) {
+        titleEl.textContent = title;
+      }
+      this.options.title = title;
+    }
+
+    setStatus(statusText, online = true) {
+      const statusTextEl = this.shell.querySelector('.kn-chat-shell__status-text');
+      const statusIconEl = this.shell.querySelector('.kn-chat-shell__status-icon');
+      if (statusTextEl) {
+        statusTextEl.textContent = statusText;
+      }
+      if (statusIconEl) {
+        statusIconEl.style.background = online ? '#4ade80' : '#9ca3af';
+      }
+      this.options.statusText = statusText;
+    }
+     setVisible(visible) {
+      if (!this.shell) return;
+      
+      if (visible) {
+        // Restore chat shell
+        this.shell.classList.remove('kn-chat-shell--hidden');
+        this.shell.setAttribute('aria-hidden', 'false');
+        
+        // Restore scroll position if saved
+        if (this._savedScrollPosition !== undefined && this.contentArea) {
+          this.contentArea.scrollTop = this._savedScrollPosition;
+        }
+        
+        // Restore focus if saved
+        if (this._savedFocus && this._savedFocus.focus) {
+          requestAnimationFrame(() => {
+            this._savedFocus.focus();
+          });
+        }
+      } else {
+        // Save current scroll position
+        if (this.contentArea) {
+          this._savedScrollPosition = this.contentArea.scrollTop;
+        }
+        
+        // Save current focus
+        this._savedFocus = document.activeElement;
+        
+        // Hide chat shell
+        this.shell.classList.add('kn-chat-shell--hidden');
+        this.shell.setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+
+  function createChatShell(container, options = {}) {
+    const element = typeof container === 'string' 
+      ? document.querySelector(container)
+      : container;
+    if (!element) {
+      console.error('ChatShell: Container not found', container);
+      return null;
+    }
+    return new ChatShell(element, options);
+  }
+
+  window.ChatShell = ChatShell;
+  window.createChatShell = createChatShell;
+
+  // ==================== TYPEWRITER MODULE ====================
+
+  class ExplainerTypewriter {
+    constructor(target, options = {}) {
+      this.target = typeof target === 'string' ? document.querySelector(target) : target;
+      if (!this.target) {
+        console.error('ExplainerTypewriter: Target element not found');
+        return;
+      }
+
+      this.options = {
+        speed: options.speed || 50,
+        pauseOnPunctuation: options.pauseOnPunctuation !== false,
+        punctuationPause: options.punctuationPause || 200,
+        cursor: options.cursor !== false,
+        cursorChar: options.cursorChar || '|',
+        cursorClass: options.cursorClass || 'kn-typewriter-cursor',
+        reserveLayout: options.reserveLayout !== false,
+        minHeight: options.minHeight || 240,
+        onComplete: options.onComplete || null,
+        onCharacter: options.onCharacter || null,
+        ...options
+      };
+
+      this.isTyping = false;
+      this.isPaused = false;
+      this.isStopped = false;
+      this.currentText = '';
+      this.currentIndex = 0;
+      this.timeoutId = null;
+      this.cursorElement = null;
+      this.originalMinHeight = null;
+      this.init();
+    }
+
+    init() {
+      if (this.options.reserveLayout) {
+        this.reserveLayout();
+      }
+      if (this.options.cursor) {
+        this.createCursor();
+      }
+      this.target.classList.add('kn-typewriter-area');
+    }
+
+    reserveLayout() {
+      this.originalMinHeight = this.target.style.minHeight;
+      this.target.style.minHeight = `${this.options.minHeight}px`;
+    }
+
+    restoreLayout() {
+      if (this.originalMinHeight !== null) {
+        this.target.style.minHeight = this.originalMinHeight;
+      }
+    }
+
+    measureContent(text) {
+      const tempEl = document.createElement('div');
+      tempEl.style.cssText = `
+        position: absolute;
+        visibility: hidden;
+        width: ${this.target.offsetWidth}px;
+        font-family: ${window.getComputedStyle(this.target).fontFamily};
+        font-size: ${window.getComputedStyle(this.target).fontSize};
+        line-height: ${window.getComputedStyle(this.target).lineHeight};
+        padding: ${window.getComputedStyle(this.target).padding};
+      `;
+      tempEl.textContent = text;
+      document.body.appendChild(tempEl);
+      const height = tempEl.offsetHeight;
+      document.body.removeChild(tempEl);
+      return height;
+    }
+
+    createCursor() {
+      this.cursorElement = document.createElement('span');
+      this.cursorElement.className = this.options.cursorClass;
+      this.cursorElement.textContent = this.options.cursorChar;
+      this.cursorElement.setAttribute('aria-hidden', 'true');
+    }
+
+    showCursor() {
+      if (this.cursorElement && !this.cursorElement.parentNode) {
+        this.target.appendChild(this.cursorElement);
+      }
+    }
+
+    hideCursor() {
+      if (this.cursorElement && this.cursorElement.parentNode) {
+        this.cursorElement.remove();
+      }
+    }
+
+    write(text, options = {}) {
+      return new Promise((resolve, reject) => {
+        if (!text) {
+          resolve();
+          return;
+        }
+        const writeOptions = { ...this.options, ...options };
+        if (writeOptions.reserveLayout) {
+          const requiredHeight = this.measureContent(text);
+          if (requiredHeight > this.options.minHeight) {
+            this.target.style.minHeight = `${requiredHeight + 20}px`;
+          }
+        }
+        this.currentText = text;
+        this.currentIndex = 0;
+        this.isStopped = false;
+        this.isPaused = false;
+        this.isTyping = true;
+        this.target.innerHTML = '';
+        this.showCursor();
+        this.typeNextCharacter(writeOptions, resolve, reject);
+      });
+    }
+
+    typeNextCharacter(options, resolve, reject) {
+      if (this.isStopped) {
+        this.cleanup();
+        reject(new Error('Typewriter stopped'));
+        return;
+      }
+      if (this.isPaused) {
+        this.timeoutId = setTimeout(() => {
+          this.typeNextCharacter(options, resolve, reject);
+        }, 100);
+        return;
+      }
+      if (this.currentIndex >= this.currentText.length) {
+        this.complete();
+        resolve();
+        return;
+      }
+      const char = this.currentText[this.currentIndex];
+      this.hideCursor();
+      const textNode = document.createTextNode(char);
+      this.target.appendChild(textNode);
+      this.showCursor();
+      if (options.onCharacter) {
+        options.onCharacter(char, this.currentIndex, this.currentText);
+      }
+      this.currentIndex++;
+      let delay = options.speed;
+      if (options.pauseOnPunctuation) {
+        if (['.', '!', '?', ':', ';'].includes(char)) {
+          delay = options.punctuationPause;
+        } else if (char === ',') {
+          delay = options.punctuationPause / 2;
+        }
+      }
+      this.timeoutId = setTimeout(() => {
+        this.typeNextCharacter(options, resolve, reject);
+      }, delay);
+    }
+
+    complete() {
+      return new Promise((resolve) => {
+        if (!this.isTyping) {
+          resolve();
+          return;
+        }
+        if (this.timeoutId) {
+          clearTimeout(this.timeoutId);
+          this.timeoutId = null;
+        }
+        this.hideCursor();
+        if (this.currentIndex < this.currentText.length) {
+          const remainingText = this.currentText.slice(this.currentIndex);
+          const textNode = document.createTextNode(remainingText);
+          this.target.appendChild(textNode);
+          this.currentIndex = this.currentText.length;
+        }
+        this.isTyping = false;
+        if (this.options.onComplete) {
+          this.options.onComplete();
+        }
+        resolve();
+      });
+    }
+
+    pause() {
+      if (this.isTyping && !this.isPaused) {
+        this.isPaused = true;
+      }
+    }
+
+    resume() {
+      if (this.isTyping && this.isPaused) {
+        this.isPaused = false;
+      }
+    }
+
+    stop() {
+      this.isStopped = true;
+      this.isTyping = false;
+      this.isPaused = false;
+      if (this.timeoutId) {
+        clearTimeout(this.timeoutId);
+        this.timeoutId = null;
+      }
+      this.hideCursor();
+    }
+
+    setSpeed(speed) {
+      this.options.speed = speed;
+    }
+
+    clear() {
+      this.target.innerHTML = '';
+      this.currentText = '';
+      this.currentIndex = 0;
+      this.isTyping = false;
+    }
+
+    cleanup() {
+      this.hideCursor();
+      this.isTyping = false;
+      this.isPaused = false;
+      if (this.timeoutId) {
+        clearTimeout(this.timeoutId);
+        this.timeoutId = null;
+      }
+    }
+
+    destroy() {
+      this.stop();
+      this.clear();
+      this.restoreLayout();
+      this.target.classList.remove('kn-typewriter-area');
+      if (this.cursorElement) {
+        this.cursorElement = null;
+      }
+    }
+  }
+
+  class EnhancedTypewriterManager {
+    constructor(target, delay = 50) {
+      this.target = target;
+      this.delay = delay;
+      this.currentTypewriter = null;
+      this.isStopped = false;
+      this.isComplete = false;
+    }
+
+    async typeContent(content, options = {}) {
+      if (!content || !this.target) {
+        return Promise.resolve();
+      }
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      if (this.currentTypewriter) {
+        this.currentTypewriter.stop();
+      }
+      this.isStopped = false;
+      this.isComplete = false;
+      this.currentTypewriter = new ExplainerTypewriter(this.target, {
+        speed: this.delay,
+        reserveLayout: true,
+        minHeight: 240,
+        pauseOnPunctuation: true,
+        cursor: true,
+        onComplete: () => {
+          this.isComplete = true;
+        }
+      });
+      try {
+        await this.currentTypewriter.write(textContent);
+      } catch (error) {
+        if (error.message !== 'Typewriter stopped') {
+          console.error('Typewriter error:', error);
+        }
+      }
+    }
+
+    complete() {
+      if (this.currentTypewriter) {
+        return this.currentTypewriter.complete();
+      }
+      return Promise.resolve();
+    }
+
+    stop() {
+      this.isStopped = true;
+      if (this.currentTypewriter) {
+        this.currentTypewriter.stop();
+      }
+    }
+
+    setSpeed(speed) {
+      this.delay = speed;
+      if (this.currentTypewriter) {
+        this.currentTypewriter.setSpeed(speed);
+      }
+    }
+
+    destroy() {
+      this.stop();
+      if (this.currentTypewriter) {
+        this.currentTypewriter.destroy();
+        this.currentTypewriter = null;
+      }
+    }
+  }
+
+  window.ExplainerTypewriter = ExplainerTypewriter;
+  window.EnhancedTypewriterManager = EnhancedTypewriterManager;
+
+  // ==================== INITIALIZATION ====================
+  console.log('✨ Knode Learning Flow initialized (embeddable)', {
+    animations: isAnimationEnabled(),
+    chatShell: true,
+    typewriter: true
+  });
+
+})(window);
+</script>
+
+<script>
+function renderTextQuizTile(tile) {
+  const container = document.getElementById("knodeTileContainer");
+  container.innerHTML = `
+    <div class="knode-tile full-screen-tile" id="textQuizTile">
+      <div class="quiz-whiteboard">
+
+        <div class="knode-pills overlay-pills">
+          <span class="pill">${tile.topic || ""}</span>
+          <span class="pill">${tile.title || "Written Task"}</span>
+          <span class="pill duration">⏱ ${tile.duration || "~5 min"}</span>
+        </div>
+
+        <div class="mock-mail">${tile.promptHtml || ""}</div>
+
+        <form id="text-quiz-form" class="text-quiz-form" novalidate>
+          ${ (tile.answerFields || []).map(f => `
+            <label for="${f.id}" class="tq-label">${f.label}</label>
+            <textarea id="${f.id}" name="${f.id}" class="tq-input" rows="6"
+              minlength="${f.min || 0}" maxlength="${f.max || 2000}" required></textarea>
+          `).join('')}
+          <div class="tq-actions">
+            <button id="tq-submit" class="knode-btn" type="submit">Send Reply →</button>
+          </div>
+        </form>
+
+        <!-- Same overlay you already use -->
+        <div id="results-view" class="explainer-container" style="display:none;">
+          <div class="float-icon" id="floatIcon">✔</div>
+          <div class="float-xp" id="floatXP">+10XP</div>
+          <div id="answer-status" class="answer-status"></div>
+          <div id="typewriter"></div>
+
+          <div class="next-controls">
+            <button id="next-btn" class="knode-btn" style="display:none;">Next</button>
+            <button id="skipbtn" class="knode-btn">Skip Explainer →</button>
+            <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
+          </div>
+
+          <div class="cta">
+            <button id="replay-cta-btn" class="knode-btn">Replay</button>
+            <button id="nextBtn" class="overlay-next-btn" type="button">Let’s move on →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Submit handler
+  const form = document.getElementById('text-quiz-form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Collect answers
+    const answers = {};
+    (tile.answerFields || []).forEach(f => {
+      answers[f.id] = (document.getElementById(f.id)?.value || "").trim();
+    });
+
+    // Simple validation
+    const invalid = (tile.answerFields || []).find(f => {
+      const len = (answers[f.id] || "").length;
+      return len < (f.min || 0);
+    });
+    if (invalid) {
+      // tiny UX nudge
+      document.getElementById(invalid.id).focus();
+      document.getElementById(invalid.id).classList.add('tq-error');
+      setTimeout(() => document.getElementById(invalid.id).classList.remove('tq-error'), 800);
+      return;
+    }
+
+    // For MVP: use the pre-canned evaluation already shaped for SequencePlayer
+    const rendered = tile.evaluation || [];
+    window.cachedResults = rendered;
+
+    // Swap views (same as MCQ flow)
+  const resultsView = document.getElementById("results-view");
+  const speedBtn = document.getElementById("speed-toggle");
+
+    applyExit(form);
+    resultsView.style.display = 'block';
+    applyEnter(resultsView);
+
+    // Ensure anchors then play
+    setTimeout(() => {
+      window.typewriterTarget = document.getElementById("typewriter");
+      window.floatIcon = document.getElementById("floatIcon");
+      window.floatXP = document.getElementById("floatXP");
+
+      // (re)bind speed toggle to this player
+      const player = ensurePlayer();
+      if (speedBtn && player) {
+        speedBtn.onclick = () => {
+          player.playbackSpeed = player.playbackSpeed === 1.0 ? 1.5 : 1.0;
+          speedBtn.textContent = `Speed: ${player.playbackSpeed}x`;
+        };
+      }
+
+      player.stop();
+      player.playSequence(rendered, 0);
+    }, 0);
+  });
+}
+</script>
+
+<script>
+function renderScenarioTile(data) {
+  const container = document.getElementById("knodeTileContainer");
+  container.innerHTML = `
+    <div class="knode-tile full-screen-tile" id="scenarioTile">
+      <div class="quiz-whiteboard">
+        <div class="knode-pills overlay-pills">
+          <span class="pill">${data.topic || ""}</span>
+          <span class="pill">${data.title || "Scenario"}</span>
+          <span class="pill duration">${data.duration || ""}</span>
+        </div>
+
+        <div class="scenario-wrapper">
+          ${data.scenarioHtml || ""}
+          <div class="scenario-options">
+            ${data.options.map(o => `<button class="knode-btn scenario-opt" data-id="${o.id}">${o.label}</button>`).join("")}
+          </div>
+        </div>
+
+        <!-- Reuse same results/CTA area so V1 player works unchanged -->
+        <div id="results-view" class="explainer-container" style="display:none;">
+          <div class="float-icon" id="floatIcon">✔</div>
+          <div class="float-xp" id="floatXP">+10XP</div>
+          <div id="answer-status" class="answer-status"></div>
+          <div id="typewriter"></div>
+
+          <div class="next-controls">
+            <button id="next-btn" class="knode-btn" style="display:none;">Next</button>
+            <button id="skipbtn" class="knode-btn">Skip Explainer →</button>
+            <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
+          </div>
+
+          <div class="cta">
+            <button id="replay-cta-btn" class="knode-btn">Replay</button>
+            <button id="nextBtn" class="overlay-next-btn">Let’s move on →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Wire options
+  document.querySelectorAll(".scenario-opt").forEach(btn => {
+    btn.onclick = () => {
+      const choice = btn.getAttribute("data-id");
+      const evaluation = (data.branches && data.branches[choice]) || [];
+      if (!evaluation.length) return;
+
+      // swap to results-view (same anchors you already use)
+      const resultsView = document.getElementById("results-view");
+      resultsView.style.display = 'block';
+      applyEnter(resultsView);
+
+      // refresh globals for V1 player
+      window.typewriterTarget = document.getElementById("typewriter");
+      window.cta        = document.querySelector('#results-view .cta');
+      window.floatIcon  = document.getElementById("floatIcon");
+      window.floatXP    = document.getElementById("floatXP");
+
+      // cache for replay
+      window.cachedResults = evaluation;
+
+      const player = ensurePlayer(); // your singleton from earlier
+      if (!player) return;
+      player.stop();
+      player.playSequence(evaluation, 0);
+
+      // wire “Let’s move on” (same pattern you’re using)
+      const nxtButton = document.getElementById("nextBtn");
+      if (nxtButton) {
+        nxtButton.onclick = () => navigateToTile(tileIndex + 1);
+      }
+      // wire replay
+      const replayButton = document.getElementById("replay-cta-btn");
+      if (replayButton) {
+        replayButton.onclick = () => {
+          const p = ensurePlayer(); if (!p) return;
+          p.stop();
+          p.playSequence(window.cachedResults || [], 0);
+        };
+      }
+    };
+  });
+}
+
+function renderChatQuizTile(data) {
+  const container = document.getElementById("knodeTileContainer");
+  
+  // Use polished ChatShell if enabled
+  const usePolishedShell = window.ENABLE_CHAT_SHELL !== false;
+  
+  container.innerHTML = `
+    <div class="knode-tile full-screen-tile" id="chatQuizTile">
+      <div class="quiz-whiteboard">
+        <div class="knode-pills overlay-pills">
+          <span class="pill">${data.topic || ""}</span>
+          <span class="pill">${data.title || "Chat Quiz"}</span>
+          <span class="pill duration">${data.duration || "~3 min"}</span>
+        </div>
+
+        ${usePolishedShell ? `
+          <div class="kn-frame kn-frame--chat" style="margin: 2rem auto;">
+            <div id="polishedChatShell"></div>
+          </div>
+        ` : `
+          <div class="chat-quiz-container">
+            <div class="chat-thread" id="chatThread"></div>
+            <div class="chat-input-area" id="chatInputArea">
+              <div class="scenario-options">
+                ${data.options.map(o => `<button class="knode-btn chat-option" data-id="${o.id}">${o.label}</button>`).join("")}
+              </div>
+            </div>
+          </div>
+        `}
+
+        <!-- Reuse same results/CTA area -->
+        <div id="results-view" class="explainer-container" style="display:none;">
+          <div class="float-icon" id="floatIcon">✔</div>
+          <div class="float-xp" id="floatXP">+10XP</div>
+          <div id="answer-status" class="answer-status"></div>
+          <div id="typewriter"></div>
+
+          <div class="next-controls">
+            <button id="next-btn" class="knode-btn" style="display:none;">Next</button>
+            <button id="skipbtn" class="knode-btn">Skip Explainer →</button>
+            <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
+          </div>
+
+          <div class="cta">
+            <button id="replay-cta-btn" class="knode-btn">Replay</button>
+            <button id="nextBtn" class="overlay-next-btn">Let's move on →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Initialize chat with messages
+
+ if (usePolishedShell && window.ChatShell) {
+    // Use polished ChatShell component
+    const chatShell = new ChatShell(document.getElementById('polishedChatShell'), {
+      title: data.title || 'Chat Quiz',
+      statusText: 'Online',
+      showStatus: true
+    });
+    
+      // Store reference for cleanup and later use
+    window._chatShellInstance = chatShell;
+    
+    // Check for new quiz modes
+    const quizMode = data.mode || 'legacy';
+    
+    if (quizMode === 'chatmcq' && data.graph && data.startId) {
+      // New MCQ branching mode
+      runMCQ({ 
+        graph: data.graph, 
+        startId: data.startId, 
+        chatShell: chatShell 
+      }).then(transcript => {
+        // After all questions answered, show explainer
+        const evaluation = data.explainer || [];
+        showExplainerWithTransition(chatShell, evaluation, transcript);
+      });
+      
+    } else if (quizMode === 'chatfreetext' && data.graph && data.startId) {
+      // New free-text mode
+      runFreeText({ 
+        graph: data.graph, 
+        startId: data.startId, 
+        chatShell: chatShell,
+        maxQuestions: data.maxQuestions || 2,
+        minHintChars: data.minHintChars || 40
+      }).then(result => {
+        // After max questions, show explainer with analysis
+        const evaluation = data.explainer || [];
+        
+        // Enhance explainer with user response analysis
+        if (data.analyzeResponses && result.userResponses) {
+          // Add analysis to explainer based on user responses
+          const analysis = data.analyzeResponses(result.userResponses);
+          evaluation.unshift({
+            type: 'text',
+            content: analysis
+          });
+        }
+        
+        showExplainerWithTransition(chatShell, evaluation, result.transcript);
+      });
+      
+    } else {
+      // Legacy mode - original chat quiz flow
+      // Add sequential messages
+      const messages = (data.messages || []).map((msg, idx) => ({
+        content: msg.content,
+        sender: msg.type === 'user' ? 'user' : 'bot',
+        delay: idx * 1000,
+        typingDelay: msg.type === 'bot' ? 1200 : 0
+      }));
+      
+      chatShell.addSequentialMessages(messages).then(() => {
+        // Add options
+        chatShell.addOptions(data.options.map(o => ({
+          id: o.id,
+          label: o.label,
+          callback: (choiceId, btn) => {
+            const evaluation = (data.branches && data.branches[choiceId]) || [];
+            if (!evaluation.length) return;
+            
+            // Add user message
+            chatShell.addMessage(o.label, 'user');
+            
+            // Show typing indicator
+            chatShell.showTypingIndicator({ delay: 500, duration: 1500 }).then(() => {
+              // Swap to results view
+              proceedToResults(evaluation);
+            });
+          }
+        })));
+      });
+    }
+    
+  } else {
+    // Use legacy chat implementation
+    const chatThread = document.getElementById("chatThread");
+    const messages = data.messages || [];
+
+    function addMessage(content, sender = 'bot', delay = 0) {
+      setTimeout(() => {
+        const messageEl = document.createElement('div');
+        messageEl.className = 'msg kn-msg kn-msg--' + sender;
+        
+        const avatar = document.createElement('div');
+        avatar.className = `chat-avatar kn-chat-avatar kn-chat-avatar--${sender}`;
+        avatar.textContent = sender === 'user' ? 'U' : 'B';
+        
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble kn-chat-bubble kn-chat-bubble--${sender}`;
+        bubble.textContent = content;
+        
+        messageEl.appendChild(avatar);
+        messageEl.appendChild(bubble);
+        chatThread.appendChild(messageEl);
+        
+        // Animate if enabled
+        if (window.KnodeAnimations && window.ENABLE_POLISH_ANIMATIONS) {
+          window.KnodeAnimations.slideFadeEnter(messageEl, { duration: 180 });
+        }
+        
+        // Auto-scroll to bottom
+        chatThread.scrollTop = chatThread.scrollHeight;
+      }, delay);
+    }
+
+    function showTypingIndicator(delay = 0) {
+      setTimeout(() => {
+        const typingEl = document.createElement('div');
+        typingEl.className = 'msg kn-msg';
+        typingEl.innerHTML = `
+          <div class="chat-avatar kn-chat-avatar kn-chat-avatar--bot">B</div>
+          <div class="typing-indicator kn-typing-indicator">
+            <div class="typing-dot kn-typing-dot"></div>
+            <div class="typing-dot kn-typing-dot"></div>
+            <div class="typing-dot kn-typing-dot"></div>
+          </div>
+        `;
+        chatThread.appendChild(typingEl);
+        chatThread.scrollTop = chatThread.scrollHeight;
+      }, delay);
+    }
+
+    function removeTypingIndicator() {
+      const typingEl = chatThread.querySelector('.typing-indicator');
+      if (typingEl) {
+        typingEl.closest('.msg').remove();
+      }
+    }
+
+    // Start the conversation (legacy mode)
+    function startConversation() {
+      messages.forEach((msg, index) => {
+        if (msg.type === 'bot') {
+          showTypingIndicator(index * 1000);
+          setTimeout(() => {
+            removeTypingIndicator();
+            addMessage(msg.content, 'bot');
+          }, index * 1000 + 1500);
+        } else if (msg.type === 'user') {
+          addMessage(msg.content, 'user', index * 1000 + 2000);
+        }
+      });
+    }
+
+    // Wire up chat options (legacy mode)
+    document.querySelectorAll(".chat-option").forEach(btn => {
+      btn.onclick = () => {
+        const choice = btn.getAttribute("data-id");
+        const choiceText = btn.textContent;
+        
+        // Add user message
+        addMessage(choiceText, 'user');
+        
+        // Disable all options
+        document.querySelectorAll(".chat-option").forEach(opt => opt.disabled = true);
+        
+        // Show typing indicator
+        showTypingIndicator(500);
+        
+        // Get evaluation and proceed
+        const evaluation = (data.branches && data.branches[choice]) || [];
+        if (!evaluation.length) return;
+
+        setTimeout(() => {
+          removeTypingIndicator();
+          proceedToResults(evaluation);
+        }, 2000);
+      };
+    });
+
+    // Start the conversation
+    startConversation();
+  }
+  
+  // Common function to proceed to results
+  function proceedToResults(evaluation) {
+    const resultsView = document.getElementById("results-view");
+     const observer = new MutationObserver(() => {
+  const frame = document.querySelector('.kn-frame.kn-frame--chat');
+  if (frame) {
+    frame.style.display = 'none';
+    observer.disconnect(); // stop watching once found
+  }
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
+ 
+  
+    resultsView.style.display = 'block';
+    
+    
+    if (window.KnodeAnimations && window.ENABLE_POLISH_ANIMATIONS) {
+      window.KnodeAnimations.slideFadeEnter(resultsView);
+    } else {
+      applyEnter(resultsView);
+    }
+
+    // Refresh globals for player
+    window.typewriterTarget = document.getElementById("typewriter");
+    window.cta = document.querySelector('#results-view .cta');
+    window.floatIcon = document.getElementById("floatIcon");
+    window.floatXP = document.getElementById("floatXP");
+
+    // Cache for replay
+    window.cachedResults = evaluation;
+
+    const player = ensurePlayer();
+    if (!player) return;
+    player.stop();
+    player.playSequence(evaluation, 0);
+
+    // Wire up navigation
+    const nxtButton = document.getElementById("nextBtn");
+    if (nxtButton) {
+       nxtButton.onclick = () => {
+        // Restore chat container before navigating
+        if (chatContainer) {
+          chatContainer.style.display = 'block';
+        }
+        resultsView.style.display = 'none';
+        navigateToTile(tileIndex + 1);
+      };
+    }
+    
+    const replayButton = document.getElementById("replay-cta-btn");
+    if (replayButton) {
+      replayButton.onclick = () => {
+        const p = ensurePlayer();
+        if (!p) return;
+        p.stop();
+        p.playSequence(window.cachedResults || [], 0);
+      };
+    }
+  }
+}
+</script>
+
+<script>
+/**
+ * ==================== NEW QUIZ MODES ====================
+ * MCQ Branching and Free-Text modes for KnodeFlow
+ */
+
+/**
+ * Grade prefix map for MCQ branching
+ */
+const GRADE_PREFIX_MAP = {
+  correct: "Nice — correct.",
+  partial: "Partly there.",
+  incorrect: "Not quite."
+};
+
+/**
+ * Run MCQ quiz with grade-based branching
+ * @param {Object} params - { graph, startId, chatShell }
+ * @param {Object} graph - Quiz graph with nodes containing: { id, prompt, options: [{label, grade, nextId}] }
+ * @param {string} startId - Starting node ID
+ * @param {ChatShell} chatShell - ChatShell instance
+ */
+async function runMCQ({ graph, startId, chatShell }) {
+  if (!graph || !startId || !chatShell) {
+    console.error('runMCQ: Missing required parameters');
+    return;
+  }
+
+  const transcript = [];
+  let currentId = startId;
+  let questionCount = 0;
+
+  // Process nodes linearly via nextId
+  while (currentId && graph[currentId]) {
+    const node = graph[currentId];
+    questionCount++;
+
+    // Display question
+    await chatShell.addMessage(node.prompt, 'bot', { delay: 500 });
+    transcript.push({ sender: 'bot', content: node.prompt });
+
+    // Wait for user selection
+    const userChoice = await new Promise((resolve) => {
+      chatShell.addOptions(node.options.map(opt => ({
+        id: opt.id || opt.label,
+        label: opt.label,
+        callback: (choiceId, btn) => {
+          const selectedOption = node.options.find(o => (o.id || o.label) === choiceId);
+          resolve(selectedOption);
+        }
+      })));
+    });
+
+    // Add user response to transcript
+    transcript.push({ sender: 'user', content: userChoice.label });
+    await chatShell.addMessage(userChoice.label, 'user');
+
+    // Get grade prefix
+    const grade = userChoice.grade || 'incorrect';
+    const prefix = GRADE_PREFIX_MAP[grade] || GRADE_PREFIX_MAP.incorrect;
+    
+    // Add grade prefix as bot response
+    const gradeMessage = `<span class="kn-grade-prefix kn-grade-prefix--${grade}">${prefix}</span>`;
+    const gradeBubble = await chatShell.addMessage(prefix, 'bot', { delay: 300 });
+    
+    // Add visual grade indicator
+    if (gradeBubble) {
+      const bubble = gradeBubble.querySelector('.kn-chat-bubble');
+      if (bubble) {
+        bubble.innerHTML = gradeMessage;
+      }
+    }
+    
+    transcript.push({ sender: 'bot', content: prefix, grade: grade });
+
+    // Move to next node
+    currentId = userChoice.nextId;
+
+    // Check if this is the last question
+    if (!currentId || !graph[currentId]) {
+      // Final question - show placeholder response
+      await chatShell.showTypingIndicator({ delay: 500, duration: 1000 });
+      await chatShell.addMessage("Ok let's run through your answers...", 'bot');
+      transcript.push({ sender: 'bot', content: "Ok let's run through your answers..." });
+      break;
+    }
+  }
+
+  // Return transcript for explainer
+  return transcript;
+}
+
+/**
+ * Run Free-Text quiz with hint system and question cap
+ * @param {Object} params - { graph, startId, chatShell, maxQuestions, minHintChars }
+ * @param {Object} graph - Quiz graph with nodes containing: { id, prompt, nextId, concepts, strengths, gaps }
+ * @param {string} startId - Starting node ID
+ * @param {ChatShell} chatShell - ChatShell instance
+ * @param {number} maxQuestions - Maximum questions (default 2)
+ * @param {number} minHintChars - Minimum characters before showing hint (default 40)
+ */
+async function runFreeText({ graph, startId, chatShell, maxQuestions = 2, minHintChars = 40 }) {
+  if (!graph || !startId || !chatShell) {
+    console.error('runFreeText: Missing required parameters');
+    return;
+  }
+
+  const transcript = [];
+  let currentId = startId;
+  let questionCount = 0;
+  const userResponses = [];
+
+  // Process up to maxQuestions
+  while (currentId && graph[currentId] && questionCount < maxQuestions) {
+    const node = graph[currentId];
+    questionCount++;
+
+    // Display question
+    await chatShell.addMessage(node.prompt, 'bot', { delay: 500 });
+    transcript.push({ sender: 'bot', content: node.prompt });
+
+    // Create free-text input area
+    const inputArea = chatShell.inputArea;
+    const inputHTML = `
+      <div class="kn-freetext-area">
+        <textarea 
+          class="kn-freetext-input" 
+          placeholder="Type your response here... (Shift+Enter for new line)"
+          rows="4"
+          id="freetext-input-${questionCount}"
+        ></textarea>
+        <div class="kn-freetext-controls">
+          <div>
+            <span class="kn-freetext-counter" id="freetext-counter-${questionCount}">0 chars</span>
+            <span class="kn-freetext-hint" id="freetext-hint-${questionCount}" style="display:none;"></span>
+          </div>
+          <button class="kn-freetext-send" id="freetext-send-${questionCount}">
+            Send
+          </button>
+        </div>
+      </div>
+    `;
+    
+    inputArea.innerHTML = inputHTML;
+
+    const textarea = document.getElementById(`freetext-input-${questionCount}`);
+    const sendBtn = document.getElementById(`freetext-send-${questionCount}`);
+    const counter = document.getElementById(`freetext-counter-${questionCount}`);
+    const hintEl = document.getElementById(`freetext-hint-${questionCount}`);
+    
+    let attemptCount = 0;
+    let hintShown = false;
+
+    // Update character counter
+    textarea.addEventListener('input', () => {
+      const length = textarea.value.trim().length;
+      counter.textContent = `${length} chars`;
+    });
+
+    // Handle Enter key (submit) vs Shift+Enter (newline)
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    // Wait for user to submit
+    const userResponse = await new Promise((resolve) => {
+      sendBtn.addEventListener('click', () => {
+        const text = textarea.value.trim();
+        attemptCount++;
+
+        // First attempt with < minHintChars - show hint
+        if (attemptCount === 1 && text.length < minHintChars && !hintShown) {
+          hintEl.textContent = `Try adding a bit more detail (aim for > ${minHintChars} chars).`;
+          hintEl.style.display = 'inline-block';
+          hintShown = true;
+          return;
+        }
+
+        // Second attempt or sufficient length - allow sending
+        if (text.length > 0) {
+          sendBtn.disabled = true;
+          textarea.disabled = true;
+          resolve(text);
+        }
+      });
+    });
+
+    // Add user response
+    userResponses.push(userResponse);
+    await chatShell.addMessage(userResponse, 'user');
+    transcript.push({ sender: 'user', content: userResponse });
+
+    // Show typing indicator
+    await chatShell.showTypingIndicator({ duration: 800 });
+
+    // Move to next node
+    currentId = node.nextId;
+  }
+
+  // After max questions reached - show transition message
+  await chatShell.addMessage("Ok let's run through your answers and see what you got...", 'bot');
+  transcript.push({ sender: 'bot', content: "Ok let's run through your answers and see what you got..." });
+
+  // Return transcript and user responses for explainer
+  return { transcript, userResponses, questionCount };
+}
+
+/**
+ * Show explainer with fade animation after hiding chat shell
+ * @param {ChatShell} chatShell - ChatShell instance
+ * @param {Object} explainerData - Explainer content/audio data
+ * @param {Array} transcript - Conversation transcript
+ */
+async function showExplainerWithTransition(chatShell, explainerData, transcript) {
+  // Small fade animation
+  const fadeOverlay = document.createElement('div');
+  fadeOverlay.className = 'kn-fade-transition';
+  fadeOverlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--knode-primary);
+  `;
+  fadeOverlay.textContent = 'Preparing your results...';
+  document.body.appendChild(fadeOverlay);
+
+  // Wait for fade animation
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+
+  // COMPLETELY REPLACE chat shell with explainer view
+  const observer = new MutationObserver(() => {
+  const frame = document.querySelector('.kn-frame.kn-frame--chat');
+  if (frame) {
+    frame.style.display = 'none';
+    observer.disconnect(); // stop watching once found
+  }
+});
+observer.observe(document.body, { childList: true, subtree: true });
+  
+  const resultsView = document.getElementById('results-view');
+  
+  if (resultsView) {
+  
+    // Show explainer view in its place
+    resultsView.style.display = 'block';
+    resultsView.style.position = 'relative';
+    resultsView.style.zIndex = '1';
+    resultsView.classList.add('kn-fade-transition');
+  }
+
+  // Remove fade overlay
+  fadeOverlay.remove();
+
+  // Play explainer with transcript
+  if (window.Explainer && window.Explainer.play) {
+    await window.Explainer.play({ 
+      content: explainerData, 
+      transcript: transcript 
+    });
+  } else {
+    // Fallback to existing player
+    const player = ensurePlayer();
+    if (player && explainerData) {
+      player.playSequence(explainerData, 0);
+    }
+  }
+
+  // After explainer completes, restore chat shell
+  const onExplainerComplete = () => {
+    if (chatContainer && resultsView) {
+      // Hide explainer
+      resultsView.style.display = 'none';
+      // Show chat shell again
+      chatContainer.style.display = 'block';
+    }
+  };
+
+  // Wire up completion handler
+  const nextBtn = document.getElementById('nextBtn');
+  if (nextBtn) {
+    const originalHandler = nextBtn.onclick;
+    nextBtn.onclick = () => {
+      onExplainerComplete();
+      if (originalHandler) originalHandler();
+    };
+  }
+
+  return onExplainerComplete;
+}
+
+// Export to global scope
+window.runMCQ = runMCQ;
+window.runFreeText = runFreeText;
+window.showExplainerWithTransition = showExplainerWithTransition;
+window.GRADE_PREFIX_MAP = GRADE_PREFIX_MAP;
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/typewriter-effect@2.18.0/dist/core.js"></script>
+<script src="https://unpkg.com/rough-notation/lib/rough-notation.iife.js"></script>
+
+<script>
+// Feature Flags
+window.ENABLE_ANIMATIONS = true;
+window.ENABLE_CHAT_STYLE = true;
+
+console.log("this Script has started running");
+
+// Simple section transition helpers
+function applyEnter(el) {
+  if (!el) return;
+  if (window.ENABLE_ANIMATIONS === false) { el.style.display = 'block'; return; }
+  el.style.display = el.style.display || 'block';
+  el.classList.add('transition-fade', 'section-enter');
+  requestAnimationFrame(() => {
+    el.classList.add('section-enter-active');
+    el.classList.remove('section-enter');
+  });
+  setTimeout(() => {
+    el.classList.remove('section-enter-active', 'transition-fade');
+  }, 350);
+}
+
+function applyExit(el) {
+  if (!el) return;
+  if (window.ENABLE_ANIMATIONS === false) { el.style.display = 'none'; return; }
+  el.classList.add('transition-fade', 'section-exit');
+  requestAnimationFrame(() => {
+    el.classList.add('section-exit-active');
+    el.classList.remove('section-exit');
+  });
+  setTimeout(() => {
+    el.classList.remove('section-exit-active', 'transition-fade');
+    el.style.display = 'none';
+  }, 300);
+}
+
+// Swap tile helper: animate out old, in new
+function navigateToTile(nextIndex) {
+  const container = document.getElementById('knodeTileContainer');
+  if (!container) { return renderTile(nextIndex); }
+  const current = container.firstElementChild;
+  if (current) {
+    applyExit(current);
+    setTimeout(() => {
+      // Render next and animate in
+      tileIndex = nextIndex;
+      renderTile(tileIndex);
+      const newChild = container.firstElementChild;
+      if (newChild) {
+        newChild.style.display = 'block';
+        applyEnter(newChild);
+      }
+    }, 320);
+  } else {
+    tileIndex = nextIndex;
+    renderTile(tileIndex);
+    const newChild = container.firstElementChild;
+    if (newChild) applyEnter(newChild);
+  }
+}
+
+const tileData = [
+  {
+    contentType: "video",
+    title: "Video 1: Welcome to Knodovia",
+    topic: "Intro",
+    duration: "60s",
+    videoUrl: "https://udpxwtntstojffxvzqxb.supabase.co/storage/v1/object/sign/Videos/f930494d1fd8a1420da69bdd1aeb1720.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWVmMmQ2ZC1iN2VlLTQ2ZGQtYmFkZi02YTg0MzhmYTJhYTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJWaWRlb3MvZjkzMDQ5NGQxZmQ4YTE0MjBkYTY5YmRkMWFlYjE3MjAubXA0IiwiaWF0IjoxNzY2OTM4OTM1LCJleHAiOjE3Njk1MzA5MzV9.lP_Zll-73cRI7Y4CEK69cJ1DvSZ0AE1sMQssNJq7mf4",
+    scenes: {
+      1: ["SaaS is like Netflix – just click and use.", "No installation needed.", "Perfect for simplicity."],
+      2: ["IaaS is like renting a house.", "You manage most components.", "Great for developers."],
+      3: ["SaaS = Easy, IaaS = Flexible.", "Use case determines choice."]
+    }
+  },
+
+  {
+    contentType: "chatQuiz",
+    title: "Kno Bot: Tourist Guide",
+    topic: "The world of Knodovia",
+    duration: "~3 min",
+    messages: [
+      { type: "bot", content: "Hello! Now you understand some of Knodovia." },
+      { type: "bot", content: "In our complex world, there are the 4 districts?"},
+      { type: "bot", content: "Can you tell me what they are?" }
+    ],
+    options: [
+      { id: "saas", label: "I'd recommend SaaS - it's perfect for simplicity" },
+      { id: "iaas", label: "Go with IaaS - you'll have more control" },
+      { id: "both", label: "Consider using both depending on your needs" }
+    ],
+    branches: {
+      saas: [
+        {
+          question_text: "Recommended SaaS for the startup",
+          answer_text: "I'd recommend SaaS - it's perfect for simplicity",
+          answer_type: "correct",
+          intro_text: "Great choice! Let's see why this works well.",
+          script_text: "SaaS is ideal here because the customer wants to focus on coding, not infrastructure. With SaaS, they get instant setup, automatic updates, and predictable costs - exactly what a startup needs to move fast.",
+          intro_url: "https://cdn.jsdelivr.net/gh/anars/blank-audio/1-second-of-silence.mp3",
+          explainer_url: "https://cdn.jsdelivr.net/gh/anars/blank-audio/1-second-of-silence.mp3",
+          recap_url: "https://cdn.jsdelivr.net/gh/anars/blank-audio/1-second-of-silence.mp3",
+          highlights: [
+            { text: "focus on coding", annotationType: "underline", color: "f28c5b" },
+            { text: "instant setup", annotationType: "underline", color: "f28c5b" },
+            { text: "predictable costs", annotationType: "underline", color: "f28c5b" }
+          ]
+        }
+      ],
+      iaas: [
+        {
+          question_text: "Recommended IaaS for the startup",
+          answer_text: "Go with IaaS - you'll have more control",
+          answer_type: "incorrect",
+          intro_text: "Let's think about this choice...",
+          script_text: "While IaaS offers control, it requires managing infrastructure - servers, networking, security patches. For a startup wanting to focus on coding, this adds complexity and overhead they may not need yet. SaaS would better match their 'focus on coding, not infrastructure' goal.",
+          intro_url: "https://cdn.example.com/audio/chat-intro2.mp3",
+          explainer_url: "https://cdn.jsndelivr.net/gh/anars/blank-audio/2-seconds-of-silence.mp3",
+          recap_url: "https://cdn.example.com/audio/chat-recap2.mp3",
+          highlights: [
+            { text: "managing infrastructure", annotationType: "underline", color: "f28c5b" },
+            { text: "adds complexity", annotationType: "underline", color: "f28c5b" },
+            { text: "focus on coding", annotationType: "underline", color: "f28c5b" }
+          ]
+        }
+      ],
+      both: [
+        {
+          question_text: "Suggested using both services",
+          answer_text: "Consider using both depending on your needs",
+          answer_type: "correct",
+          intro_text: "Interesting approach! Let's explore this.",
+          script_text: "This shows good nuanced thinking. Many companies do use hybrid approaches - SaaS for standard tools like email and CRM, while using IaaS for custom applications. For this specific startup though, starting with pure SaaS would reduce initial complexity.",
+          intro_url: "https://cdn.example.com/audio/chat-intro3.mp3",
+          explainer_url: "https://cdn.example.com/audio/chat-explainer3.mp3",
+          recap_url: "https://cdn.example.com/audio/chat-recap3.mp3",
+          highlights: [
+            { text: "hybrid approaches", annotationType: "underline", color: "f28c5b" },
+            { text: "starting with pure SaaS", annotationType: "underline", color: "f28c5b" },
+            { text: "reduce initial complexity", annotationType: "underline", color: "f28c5b" }
+          ]
+        }
+      ]
+    }
+  },
+
+  {
+    contentType: "mcqQuiz",     // make sure your dispatcher handles this!
+    title : "Let's Quiz!",
+    topic : "Understanding SaaS",
+    duration: "~2–3 min",
+    quizDate: {
+      id: "cf7b8565-58e1-4127-b297-1454a5098ce4",
+      quiz_id: "",
+      created_at: 1752601591427
+    },
+    questions: [
+      {
+        id: "8da9a609-e151-4c47-b6a5-b5b2ac19bcd5",
+        question_id: 1,
+        question_title: "What does SaaS stand for?",
+        options: ["Software as a Service","Server and Storage","System as a Solution","Service and Support"],
+        correct_answer_index: 0
+      },
+      {
+        id: "77814806-9f3b-48fa-ba05-3b30bbcc75f7",
+        question_id: 2,
+        question_title: "Which of these is a key benefit of cloud computing?",
+        options: ["Higher electricity usage","On-premise setup","Scalability","Manual backups"],
+        correct_answer_index: 2
+      },
+      {
+        id: "ae590d6b-a9ab-4083-a051-198e5a6b121b",
+        question_id: 3,
+        question_title: "What is the primary purpose of a cloud provider?",
+        options: ["To sell hardware","To manage local servers","To provide on-demand computing resources","To build websites"],
+        correct_answer_index: 2
+      },
+      {
+        id: "27afe5b9-f6c7-4bf8-b8f4-2aa2ca5c36b0",
+        question_id: 4,
+        question_title: "Which one is an example of IaaS?",
+        options: ["Google Docs","Amazon EC2","Dropbox","Outlook.com"],
+        correct_answer_index: 1
+      },
+      {
+        id: "474e4a04-0154-48d6-b27c-fcc095a15303",
+        question_id: 5,
+        question_title: "Cloud computing is best described as?",
+        options: ["Static hosting","On-demand resource delivery","Buying physical servers","Unlimited bandwidth"],
+        correct_answer_index: 1
+      }
+    ]
+  },
+
+  // ==================== NEW QUIZ MODES ====================
+  
+  // MCQ Branching Mode Example
+  {
+    contentType: "chatQuiz",
+    mode: "chatmcq",
+    title: "Cloud Concepts Quiz",
+    topic: "Cloud Fundamentals",
+    duration: "~2 min",
+    graph: {
+      "q1": {
+        id: "q1",
+        prompt: "What does SaaS stand for?",
+        options: [
+          {
+            label: "Software as a Service",
+            grade: "correct",
+            nextId: "q2"
+          },
+          {
+            label: "Storage as a Service",
+            grade: "incorrect",
+            nextId: "q2"
+          },
+          {
+            label: "System as a Service",
+            grade: "partial",
+            nextId: "q2"
+          }
+        ]
+      },
+      "q2": {
+        id: "q2",
+        prompt: "Which is a primary benefit of cloud computing?",
+        options: [
+          {
+            label: "Physical ownership of servers",
+            grade: "incorrect",
+            nextId: "q3"
+          },
+          {
+            label: "Scalability and flexibility",
+            grade: "correct",
+            nextId: "q3"
+          },
+          {
+            label: "Manual software updates",
+            grade: "incorrect",
+            nextId: "q3"
+          }
+        ]
+      },
+      "q3": {
+        id: "q3",
+        prompt: "Azure Functions is an example of which service model?",
+        options: [
+          {
+            label: "SaaS",
+            grade: "incorrect",
+            nextId: null
+          },
+          {
+            label: "PaaS (Serverless)",
+            grade: "correct",
+            nextId: null
+          },
+          {
+            label: "IaaS",
+            grade: "partial",
+            nextId: null
+          }
+        ]
+      }
+    },
+    startId: "q1",
+    explainer: [
+      {
+        question_text: "Cloud Concepts Quiz Review",
+        answer_text: "Your quiz responses",
+        answer_type: "summary",
+        intro_text: "Great work! Let's review your answers.",
+        script_text: "SaaS stands for Software as a Service - it's the delivery model where applications run in the cloud. Key benefits include scalability and flexibility - you can scale resources up or down as needed. Azure Functions is a serverless compute service, which falls under PaaS (Platform as a Service). These concepts form the foundation of modern cloud architecture.",
+        intro_url: "",
+        explainer_url: "",
+        recap_url: "",
+        highlights: [
+          { text: "Software as a Service", annotationType: "box", color: "10b981" },
+          { text: "scalability and flexibility", annotationType: "underline", color: "f28c5b" },
+          { text: "serverless compute", annotationType: "circle", color: "8b5cf6" }
+        ]
+      }
+    ]
+  },
+
+  // Free-Text Mode Example
+  {
+    contentType: "chatQuiz",
+    mode: "chatfreetext",
+    title: "Cloud Understanding Check",
+    topic: "Cloud Fundamentals",
+    duration: "~4 min",
+    graph: {
+      "q1": {
+        id: "q1",
+        prompt: "In your own words, explain the main benefits of using cloud computing for a business.",
+        nextId: "q2",
+        concepts: ["scalability", "cost-efficiency", "accessibility", "maintenance"]
+      },
+      "q2": {
+        id: "q2",
+        prompt: "Describe a scenario where you would choose serverless architecture (like Azure Functions) over traditional server hosting.",
+        nextId: null,
+        concepts: ["event-driven", "auto-scaling", "cost-optimization", "microservices"]
+      }
+    },
+    startId: "q1",
+    maxQuestions: 2,
+    minHintChars: 40,
+    explainer: [
+      {
+        question_text: "Your Free Response Analysis",
+        answer_text: "Analyzing your understanding",
+        answer_type: "analysis",
+        intro_text: "Let's break down your responses.",
+        script_text: "Based on your answers, you've demonstrated understanding of key cloud concepts. Strong areas include recognizing scalability and cost benefits. For serverless architecture, event-driven workloads and automatic scaling are crucial advantages. Consider exploring how serverless reduces operational overhead and enables pay-per-execution pricing. These patterns are widely used in modern cloud-native applications.",
+        intro_url: "",
+        explainer_url: "",
+        recap_url: "",
+        highlights: [
+          { text: "scalability and cost benefits", annotationType: "underline", color: "10b981" },
+          { text: "event-driven workloads", annotationType: "box", color: "f28c5b" },
+          { text: "pay-per-execution", annotationType: "circle", color: "8b5cf6" },
+          { text: "operational overhead", annotationType: "underline", color: "f59e0b" }
+        ]
+      }
+    ],
+    analyzeResponses: function(responses) {
+      // Analyze user responses for key concepts
+      const keywords = {
+        business: ["scalability", "scale", "cost", "flexible", "accessibility", "maintenance", "efficiency"],
+        serverless: ["event", "automatic", "scaling", "cost", "microservice", "function", "trigger", "pay"]
+      };
+      
+      const response1 = responses[0] ? responses[0].toLowerCase() : "";
+      const response2 = responses[1] ? responses[1].toLowerCase() : "";
+      
+      const mentioned1 = keywords.business.filter(kw => response1.includes(kw));
+      const mentioned2 = keywords.serverless.filter(kw => response2.includes(kw));
+      
+      let analysis = "";
+      
+      if (mentioned1.length > 0) {
+        analysis += `Great! You mentioned: ${mentioned1.join(", ")}. `;
+      }
+      
+      if (mentioned2.length > 0) {
+        analysis += `For serverless, you covered: ${mentioned2.join(", ")}. `;
+      }
+      
+      if (mentioned1.length < 2) {
+        analysis += "Consider exploring more benefits like cost-efficiency and reduced maintenance. ";
+      }
+      
+      if (mentioned2.length < 2) {
+        analysis += "For serverless, think about event-driven patterns and auto-scaling advantages.";
+      }
+      
+      return analysis || "You've provided thoughtful responses. Let's review the key concepts together.";
+    }
+  }
+];
+
+let currentIndex = 0;
+let tileIndex = 0;
+let data = [];
+let userAnswers = [];
+let typewriterTarget;
+  
+function renderTile(index) {
+  const data = tileData[index];
+  if (!data) return;
+
+  if (data.contentType === "video") return renderVideoTile(data);
+  if (data.contentType === "mcqQuiz") return renderQuizTile(data);
+  if (data.contentType === "textQuiz") return renderTextQuizTile(data);
+  if (data.contentType === "scenarioQuiz") return renderScenarioTile(data);
+  if (data.contentType === "chatQuiz") return renderChatQuizTile(data);
+}
+
+  
+ function renderVideoTile(data) {
+ const container = document.getElementById("knodeTileContainer");
+ console.log("tile called with:",data);
+ 
+container.innerHTML = `
+  <div class="knode-tile">
+    <div class="video-wrapper">
+      <div class="video-inner">
+
+        <video id="tileVideo" class="knode-video" controls playsinline autoplay style="width: 95%; height: 95%; object-fit: contain;">
+          <source src="${data.videoUrl}" type="video/mp4" />
+        </video>
+
+        <div class="pill-group">
+          <span class="pill">${data.topic}</span>
+          <span class="pill">${data.title}</span>
+          <span class="pill duration">⏱ ${data.duration}</span>
+        </div>
+
+        <div class="cta-overlay" id="ctaOverlay" style="display: none;">
+          <button id="nxtBtn" class="knode-btn">Let’s move on →</button>
+          <button id="replayBtn" class="knode-btn ghost">Replay ⟳</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="knoments-header" onclick="toggleKnoments()">📝 Knoments (click to open/close)</div>
+    <div class="knoments-wrapper" id="knomentsWrapper">
+      <div class="scene-selector" id="sceneButtons"></div>
+      <div class="knoment-sticky-wrapper" id="knomentStickers"></div>
+      <div class="summarise-options">
+        <p><strong>Try a different summary format:</strong></p>
+        <button class="summary-btn">ELI5</button>
+        <button class="summary-btn">Sports Analogy</button>
+        <button class="summary-btn">Pop Culture</button>
+      </div>
+    </div>
+  </div>
+`;
+
+  const scenes = data.scenes;
+  const sceneButtons = document.getElementById("sceneButtons");
+  const stickers = document.getElementById("knomentStickers");
+  Object.keys(scenes).forEach((sceneId, i) => {
+    const btn = document.createElement("button");
+    btn.className = `scene-btn ${i === 0 ? "active" : ""}`;
+    btn.textContent = `Scene ${sceneId}`;
+    btn.onclick = () => {
+      document.querySelectorAll(".scene-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderKnoments(scenes[sceneId], stickers);
+    };
+    sceneButtons.appendChild(btn);
+  });
+
+  renderKnoments(scenes[1], stickers);
+
+const video = document.getElementById("tileVideo");
+const ctaOverlay = document.getElementById("ctaOverlay");
+const replayBtn = document.getElementById("replayBtn");
+
+video.onended = () => {
+  ctaOverlay.style.display = "flex";
+};
+
+replayBtn.onclick = () => {
+  ctaOverlay.style.display = "none";
+  video.currentTime = 0;
+  video.play();
+};
+
+ video.addEventListener("ended", () => {
+   document.getElementById("nxtBtn").style.display = "flex";
+    console.log("nextBtn Found and loaded");
+  });
+  
+  
+
+  document.getElementById("nxtBtn").onclick = () => {
+    navigateToTile(tileIndex + 1);
+  };
+}
+
+
+function renderKnoments(knomentArr, container) {
+  container.innerHTML = "";
+  knomentArr.forEach(text => {
+    const div = document.createElement("div");
+    div.className = "knoment";
+    div.innerHTML = `<p>${text}</p><button class="copy-btn">Copy</button>`;
+    container.appendChild(div);
+  });
+}
+
+function toggleKnoments() {
+  const el = document.getElementById("knomentsWrapper");
+  el.style.display = el.style.display === "block" ? "none" : "block";
+}
+
+
+function renderQuizTile(data) {
+  const container = document.getElementById("knodeTileContainer");
+
+  container.innerHTML = `
+    <div class="knode-tile full-screen-tile" id="quizTile">
+ 
+
+  <div class="quiz-whiteboard">
+   <div class="knode-pills overlay-pills">
+    <span class="pill">${data.topic || ""}</span>
+    <span class="pill">${data.title || "Quiz"}</span>
+    <span class="pill duration">⏱ ${data.duration || "?"}</span>
+  </div>
+    <div id="quiz-app" class="quiz-app">
+    
+      <div id="quiz-header">
+        <h2 id="quiz-name">${data.title || "Quiz Time"}</h2>
+        <div id="progress-bar">
+          <span id="progress-count">1 / ${(data.questions.length || 5)}</span>
+          <div class="progress-track"><div id="progress-fill"></div></div>
+        </div>
+      </div>
+      <div id="quiz-container"></div>
+    </div>
+
+    <div id="results-view" class="explainer-container" style="display:none;">
+      <div class="float-icon" id="floatIcon">✔</div>
+      <div class="float-xp" id="floatXP">+10XP</div>
+      <div id="answer-status" class="answer-status"></div>
+      <div id="typewriter"></div>
+
+      <div class="next-controls" id="nextControls">
+        <button id="next-btn" class="knode-btn" style="display:none;">Next Question</button>
+        <button id="skipbtn" class="knode-btn">Skip Explainer →</button>
+        <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
+      </div>
+
+      <div class="cta" id="cta">
+        <button id="save-cta-btn" class="knode-btn" onclick="window.location.href='/log-in'">Save XP & Streak?</button>
+        <button id="replay-cta-btn" class="knode-btn" onclick="replayFeedback()">Replay</button>
+        <button id="nextBtn" class="overlay-next-btn">Let’s move on →</button>
+      </div>
+
+      <div id="audio-init" class="audio-init" style="display:none;">
+        <button id="enable-audio">🔈 Tap to Enable Audio</button>
+        <div id="confetti-lottie" class="confetti-lottie"></div>
+      </div>
+
+      <img src="https://cdn.prod.website-files.com/6821cff7a114d28d2d37eb72/6842d8a42693e55fa4d185c7_kno-character-teacher.png" alt="Kno Teacher" class="mascot" />
+      <div id="tick-lottie" class="tick-lottie"></div>
+    </div>
+  </div>
+</div>
+
+  `;
+  // === V1 anchors: must be GLOBAL so V1 methods can see them ===
+window.typewriterTarget = document.getElementById('typewriter');
+window.cta         = document.getElementById('cta');
+window.floatIcon   = document.getElementById('floatIcon');
+window.floatXP     = document.getElementById('floatXP');
+
+console.log('[anchors]',
+  !!window.typewriterTarget,
+  !!window.cta,
+  !!window.floatIcon,
+  !!window.floatXP
+);
+
+  // ✅ Safely fire quiz logic after rendering
+  if (data && Array.isArray(data.questions)) {
+    initQuiz(data); // pass full data object to preserve quizId etc.
+  } else {
+    console.error("renderQuizTile: No valid questions found in data");
+  }
+}
+
+let quizData = [];
+let sequencePlayer = window.sequencePlayer || null;
+
+function ensurePlayer() {
+  if (!window.typewriterTarget) {
+    console.warn('typewriterTarget not ready; call ensurePlayer() after results view is visible.');
+    return null;
+  }
+
+  const needsRebuild =
+    !sequencePlayer ||
+    !sequencePlayer.typewriterManager?.target ||
+    sequencePlayer.typewriterManager.target !== window.typewriterTarget;
+
+  if (needsRebuild) {
+    sequencePlayer = new SequencePlayer();
+    window.sequencePlayer = sequencePlayer;
+
+    const speedBtn = document.getElementById('speed-toggle');
+    if (speedBtn) {
+      speedBtn.onclick = () => {
+        sequencePlayer.playbackSpeed = sequencePlayer.playbackSpeed === 1.0 ? 1.5 : 1.0;
+        speedBtn.textContent = `Speed: ${sequencePlayer.playbackSpeed}x`;
+      };
+    }
+  }
+  return sequencePlayer;
+}
+
+function initQuiz(data) {
+  console.log("initQuiz received:", data); // ← ADD THIS
+  if (!data || !Array.isArray(data.questions)) {
+    console.error("initQuiz error: data.questions is missing or not an array.");
+    return;
+  }
+
+  quizData = data.questions;
+  currentIndex = 0;
+  userAnswers = [];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const quizContainer = document.getElementById("quiz-container");
+  const q = quizData[currentIndex];
+
+  quizContainer.innerHTML = `
+    <div class="quiz-question-title">${q.question_title}</div>
+    <div class="quiz-options">
+      ${q.options.map((opt, i) => `
+        <div class="quiz-option" data-index="${i}">${opt}</div>
+      `).join("")}
+    </div>
+    ${currentIndex > 0 ? '<button id="back-button">Back</button>' : ''}
+  `;
+
+  document.querySelectorAll(".quiz-option").forEach(option => {
+    option.addEventListener("click", e => {
+      const selectedIndex = parseInt(e.target.getAttribute("data-index"));
+      userAnswers.push({ question_id: q.id, selected_option: selectedIndex });
+      currentIndex++;
+      if (currentIndex < quizData.length) {
+        renderQuestion();
+      } else {
+        renderFinalScreen();
+      }
+    });
+  });
+
+  const backBtn = document.getElementById("back-button");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      currentIndex--;
+      userAnswers.pop();
+      renderQuestion();
+    });
+  }
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const progressCountEl = document.getElementById("progress-count");
+  const progressFillEl = document.getElementById("progress-fill");
+  progressCountEl.textContent = `${Math.min(currentIndex + 1, quizData.length)} / ${quizData.length}`;
+  progressFillEl.style.width = `${(currentIndex / quizData.length) * 100}%`;
+}
+
+function renderFinalScreen() {
+  const quizContainer = document.getElementById("quiz-container");
+ quizContainer.innerHTML = `
+  <div class="quiz-final">
+    <h3 class="quiz-final-heading">Now let’s see your results</h3>
+    <div class="quiz-final-cta">
+      <button class="knode-btn" type="button" id="quiz-submit">See My Results →</button>
+    </div>
+  </div>
+`;
+document.getElementById('quiz-submit')?.addEventListener('click', submitAnswers);
+
+  updateProgress();
+}
+
+</script>
+
+<script>
+
+function submitAnswers() {
+  const quizContainer = document.getElementById("quiz-container");
+  const quizHeader    = document.getElementById("quiz-header");
+  const quizApp       = document.getElementById("quiz-app");
+  const resultsView   = document.getElementById("results-view");
+
+  const submitEndpoint = "https://udpxwtntstojffxvzqxb.supabase.co/functions/v1/dynamic-handler";
+  const quizId = "cf7b8565-58e1-4127-b297-1454a5098ce4";
+  const username = localStorage.getItem('username');
+  const anonID   = localStorage.getItem('anonymous_id');
+  const submit_Date = new Date().toISOString().split("T")[0];
+
+  // Show spinner
+  quizContainer.innerHTML = '<div class="quiz-final"><h3>Generating feedback...</h3><div class="spinner"></div></div>';
+
+  // Build payload
+  const payload = { quiz_id: quizId, answers: userAnswers, submitDate: submit_Date };
+  if (username) payload.user_id = username; else if (anonID) payload.anonymous_id = anonID;
+
+  fetch(submitEndpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(result => {
+    const rendered = result.response;
+    if (!Array.isArray(rendered) || rendered.length === 0) {
+      quizContainer.innerHTML = `<p>Sorry, we couldn’t generate your feedback. Please try again later.</p>`;
+      return;
+    }
+
+    // Cache for replay
+    window.cachedResults = rendered;
+
+    // Swap to results view with transitions
+applyExit(quizApp);
+applyExit(quizHeader);
+applyExit(quizContainer);
+resultsView.style.display = 'block';
+applyEnter(resultsView);
+
+// Give the browser a tick to paint the new DOM
+setTimeout(() => {
+  // refresh anchors from the now-visible DOM
+  window.typewriterTarget = document.getElementById("typewriter");
+  window.floatIcon = document.getElementById("floatIcon");
+  window.floatXP   = document.getElementById("floatXP");
+
+  if (!window.typewriterTarget) {
+    console.error("❌ Could not find #typewriter element");
+    return;
+  }
+
+  // if an old player was bound to a different target, drop it
+  if (window.sequencePlayer &&
+      window.sequencePlayer.typewriterManager?.target !== window.typewriterTarget) {
+    window.sequencePlayer = null;
+  }
+
+  const player = ensurePlayer();
+  if (!player) return;
+
+  player.stop();
+  
+  // iOS Audio Fix: Show a button to start playback
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS && rendered.length > 0 && rendered[0].intro_url) {
+    // Create a visual button to start audio
+    const audioInitBtn = document.createElement('button');
+    audioInitBtn.className = 'knode-btn';
+    audioInitBtn.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: #f28c5b; color: white; padding: 1rem 2rem; border-radius: 999px; font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2);';
+    audioInitBtn.textContent = '▶️ See My Results';
+    resultsView.appendChild(audioInitBtn);
+    
+    audioInitBtn.onclick = () => {
+      // Remove the button
+      audioInitBtn.remove();
+      
+      // Unlock iOS audio with silent audio
+      const silentAudio = new Audio("https://cdn.jsdelivr.net/gh/anars/blank-audio/1-second-of-silence.mp3");
+      silentAudio.play().then(() => {
+        silentAudio.pause();
+        silentAudio.currentTime = 0;
+        console.log("✅ iOS audio unlocked");
+        
+        // Now play the sequence
+        player.playSequence(rendered, 0);
+      }).catch(e => {
+        console.warn("⚠️ Silent audio failed:", e);
+        // Try to play anyway
+        player.playSequence(rendered, 0);
+      });
+    };
+  } else {
+    // Non-iOS or no audio - play directly
+    player.playSequence(rendered, 0);
+  }
+}, 0);
+  })
+  .catch(err => {
+    console.error("Error submitting quiz:", err);
+    quizContainer.innerHTML = `<p>Something went wrong. Please try again later.</p>`;
+  });
+}
+// Configuration object - easily adjustable for audio-text sync
+const sequenceConfig = {
+  typewriterDelay: 50,           // ms between characters
+  introDelay: 400,              // pause after intro message
+  recapDelay: 500,              // delay before next result
+  annotationDelay: 1000,         // ms between annotations
+  floatIconDuration: 2000,       // how long float effects show
+  explainerTextDelay: 200,       // delay before starting typewriter during explainer
+  postRecapDelay: 300,           // extra delay after recap before annotations
+  domUpdateDelay: 100,           // wait for DOM updates
+};
+
+// Audio Manager - handles all audio operations
+class AudioManager {
+  constructor() {
+    this.audioCache = new Map();
+    this.currentAudios = new Set();
+  }
+  async loadAudio(url) {
+    if (this.audioCache.has(url)) {
+      return this.audioCache.get(url);
+    }
+    const audio = new Audio(url);
+    this.audioCache.set(url, audio); // cache early
+    return new Promise((resolve, reject) => {
+      const onLoad = () => {
+        audio.removeEventListener('loadeddata', onLoad);
+        audio.removeEventListener('canplaythrough', onLoad);
+        audio.removeEventListener('error', onError);
+        resolve(audio);
+      };
+      const onError = (e) => {
+        audio.removeEventListener('loadeddata', onLoad);
+        audio.removeEventListener('canplaythrough', onLoad);
+        audio.removeEventListener('error', onError);
+        console.warn(`Failed to load audio: ${url}`, e);
+        reject(e);
+      };
+      audio.addEventListener('loadeddata', onLoad);
+      audio.addEventListener('canplaythrough', onLoad);
+      audio.addEventListener('error', onError);
+      audio.load();
+    });
+  }
+  // This ensures all audio tags are iOS-unlocked
+  async prewarmAudios(urls = []) {
+    const unlockPromises = urls.map(async (url) => {
+      const audio = await this.loadAudio(url);
+      return audio.play().then(() => {
+        audio.pause(); // stop it right away
+        audio.currentTime = 0;
+      }).catch(() => {}); // swallow autoplay errors
+    });
+    return Promise.all(unlockPromises);
+  }
+  async playAudio(url, speed = 1.0) {
+    try {
+      const audio = await this.loadAudio(url);
+      audio.playbackRate = speed;
+      this.currentAudios.add(audio);
+      return new Promise((resolve) => {
+        const onDone = () => {
+          audio.removeEventListener('ended', onDone);
+          audio.removeEventListener('knode-stop', onDone);
+          this.currentAudios.delete(audio);
+          resolve();
+        };
+        audio.addEventListener('ended', onDone, { once: true });
+        audio.addEventListener('knode-stop', onDone, { once: true });
+        audio.currentTime = 0;
+        audio.play().catch(err => {
+          console.warn(`Failed to play audio: ${url}`, err);
+          onDone();
+        });
+      });
+    } catch (error) {
+      console.warn(`Audio error for ${url}:`, error);
+      return Promise.resolve();
+    }
+  }
+
+  stopAll() {
+    // Ensure all waiting playAudio promises resolve
+    this.currentAudios.forEach(audio => {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.dispatchEvent(new Event('knode-stop'));
+      } catch (_) {}
+    });
+    this.currentAudios.clear();
+  }
+}
+//typewrite manager func
+class TypewriterManager {
+  constructor(target, delay = 50) { 
+    this.target = target; 
+    this.delay = delay; 
+    this.currentTypewriter = null;
+    this.isStopped = false;
+    this.pendingResolve = null;
+  }
+
+  async typeContent(content) {
+    if (!this.target) { throw new Error('TypewriterManager: target is null'); }
+    this.target.innerHTML = "";
+    this.isStopped = false;
+    
+    return new Promise((resolve) => {
+      this.pendingResolve = () => { try { resolve(); } catch(_) {} finally { this.pendingResolve = null; } };
+      if (this.isStopped) {
+        this.pendingResolve();
+        return;
+      }
+      
+      this.currentTypewriter = new Typewriter(this.target, { 
+        loop: false, 
+        delay: this.delay,
+        cursor: '|',
+        cursorClassName: 'typewriter-cursor'
+      });
+      
+      this.currentTypewriter
+        .typeString(content)
+        .callFunction(() => {
+          if (!this.isStopped && this.pendingResolve) this.pendingResolve();
+        })
+        .start();
+    });
+  }
+  
+  stop() {
+    this.isStopped = true;
+    if (this.currentTypewriter) {
+      this.currentTypewriter.stop();
+      this.currentTypewriter = null;
+    }
+    if (this.pendingResolve) {
+      this.pendingResolve();
+    }
+  }
+      
+ async appendContent(content) {
+    // Append content to existing text
+    return new Promise((resolve) => {
+      this.pendingResolve = () => { try { resolve(); } catch(_) {} finally { this.pendingResolve = null; } };
+      const typewriter = new Typewriter(this.target, {
+        loop: false,
+        delay: this.delay
+      });
+     
+      typewriter
+        .typeString(content)
+        .callFunction(() => { if (this.pendingResolve) this.pendingResolve(); })
+        .start();
+    });
+  }
+
+  async typeIntro(message, delay) {
+    this.target.innerHTML = "";
+   
+    return new Promise((resolve) => {
+      this.pendingResolve = () => { try { resolve(); } catch(_) {} finally { this.pendingResolve = null; } };
+      const typewriter = new Typewriter(this.target, {
+        loop: false,
+        delay: this.delay
+      });
+     
+      typewriter
+        .typeString(message)
+        .pauseFor(delay)
+        .callFunction(() => { if (this.pendingResolve) this.pendingResolve(); })
+        .start();
+    });
+  }
+}
+
+
+// Annotation Manager - handles highlight annotations
+class AnnotationManager {
+  constructor(target) {
+    this.target = target;
+    this.annotations = [];
+    this.rangeMap = new Map(); // Store text ranges for resize handling
+    this.resizeObserver = null;
+    this.setupResizeObserver();
+  }
+ 
+  async annotateHighlights(highlights, delay = 1100) {
+    // Clear previous annotations
+    this.clearAnnotations();
+   
+    if (!highlights || highlights.length === 0) {
+      return;
+    }
+   
+    let html = this.target.innerHTML;
+   
+    // Apply spans first - process each highlight
+    const questionEnd = html.indexOf('\n\n');
+		if (questionEnd !== -1) {
+ 		 const questionPart = html.substring(0, questionEnd + 4); // Keep question + spacing
+		  let scriptPart = html.substring(questionEnd + 4); // Only annotate script part
+ 
+  // Apply annotations to script part only
+  highlights.forEach((obj, idx) => {
+    const phrase = obj.text;
+    if (!phrase) return;
+   
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+   
+    if (scriptPart.match(regex)) {
+      scriptPart = scriptPart.replace(regex, `<span class="annotate-target" id="span${idx}">${phrase}</span>`);
+    } else {
+      console.warn(`Could not find text to annotate: "${phrase}"`);
+    }
+  });
+ 
+  html = questionPart + scriptPart;
+} else {
+  // Fallback to original logic if no question found
+  highlights.forEach((obj, idx) => {
+    const phrase = obj.text;
+    if (!phrase) return;
+   
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
+   
+    if (html.match(regex)) {
+      html = html.replace(regex, `<span class="annotate-target" id="span${idx}">${phrase}</span>`);
+    } else {
+      console.warn(`Could not find text to annotate: "${phrase}"`);
+    }
+  });
+}
+
+   
+    this.target.innerHTML = html;
+   
+    // Wait for DOM to update
+    await this.delay(100);
+   
+    // Create and show annotations
+    for (let idx = 0; idx < highlights.length; idx++) {
+      const obj = highlights[idx];
+      const span = document.getElementById(`span${idx}`);
+     
+      if (!span) {
+        console.warn(`Could not annotate "${obj.text}" – span not found in DOM`);
+        continue;
+      }
+     
+      try {
+        // Parse color properly
+        let color = '#f28c5b'; // default
+        if (obj.color) {
+          const colorPart = obj.color.split('_')[0];
+          color = colorPart.startsWith('#') ? colorPart : `#${colorPart}`;
+        }
+       
+        const annotation = RoughNotation.annotate(span, {
+          type: obj.annotationType === 'box' ? 'box' : obj.annotationType || 'underline',
+          color: color,
+          padding: 4,
+          iterations: 2,
+          animate: true
+        });
+       
+        this.annotations.push(annotation);
+       
+        // Show annotation with delay
+        setTimeout(() => {
+          annotation.show();
+        }, delay * idx);
+       
+      } catch (error) {
+        console.error(`Error creating annotation for "${obj.text}":`, error);
+      }
+    }
+  }
+ 
+  clearAnnotations() {
+    this.annotations.forEach(annotation => {
+      try {
+        annotation.hide();
+      } catch (e) {
+        // Annotation might already be destroyed
+      }
+    });
+    this.annotations = [];
+  }
+  
+  
+ 
+  // Helper method for debugging
+  debugAnnotations() {
+    console.log('🐛 Annotation Debug Info:');
+    console.log('RoughNotation available:', typeof RoughNotation !== 'undefined');
+    console.log('Target element:', this.target);
+    console.log('Target HTML length:', this.target.innerHTML.length);
+   
+    const spans = this.target.querySelectorAll('.annotate-target');
+    console.log('Found annotation spans:', spans.length);
+    spans.forEach((span, idx) => {
+      console.log(`  Span ${idx}: "${span.textContent}" (id: ${span.id})`);
+    });
+  }
+ 
+  async delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  setupResizeObserver() {
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.syncAnnotations();
+      });
+      this.resizeObserver.observe(this.target);
+    }
+  }
+  
+  syncAnnotations() {
+    // Re-sync annotations after resize
+    this.annotations.forEach(annotation => {
+      try {
+        annotation.hide();
+        annotation.show();
+      } catch (e) {
+        console.warn('Error syncing annotation:', e);
+      }
+    });
+  }
+  
+  destroy() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    this.clearAnnotations();
+  }
+}
+
+// Main Sequence Player - orchestrates everything
+class SequencePlayer {
+  constructor(config = {}) {
+    this.config = { ...sequenceConfig, ...config };
+    this.hasShownIntro = false;
+    this.currentIndex = 0;
+    this.isPlaying = false;
+    this.playbackSpeed = 1.0;
+    this.skipRequested = false;
+    this.activeTimers = new Set();
+
+    this.audioManager      = new AudioManager();
+    this.typewriterManager = new TypewriterManager(window.typewriterTarget, this.config.typewriterDelay);
+    this.annotationManager = new AnnotationManager(window.typewriterTarget);
+    
+    // Feature flags
+    this.enableAnimations = window.ENABLE_ANIMATIONS !== false;
+    this.enableChatStyle = window.ENABLE_CHAT_STYLE === true;
+  }
+  bindGlobalSkip() {
+    const skipBtn = document.getElementById('skipbtn');
+    if (!skipBtn) return;
+    if (skipBtn.dataset && skipBtn.dataset.bound === 'true') {
+      // already bound for this DOM instance
+      skipBtn.style.display = 'inline-block';
+      return;
+    }
+    const globalSkipHandler = () => {
+      this.skipRequested = true;
+      this.clearAllTimers();
+      this.audioManager.stopAll();
+      this.typewriterManager.stop();
+      this.annotationManager.clearAnnotations();
+    };
+    skipBtn.addEventListener('click', globalSkipHandler);
+    // Make sure it's visible during playback
+    skipBtn.style.display = 'inline-block';
+    if (!skipBtn.dataset) skipBtn.dataset = {};
+    skipBtn.dataset.bound = 'true';
+  }
+waitForNextButton() {
+  return new Promise(resolve => {
+    const btn = document.getElementById("next-btn");
+    const skipBtn = document.getElementById("skipbtn");
+    
+    if (!btn) {
+      resolve();
+      return;
+    }
+    
+    btn.style.display = "inline-block";
+    if (skipBtn) skipBtn.style.display = "inline-block";
+    // Animate buttons in
+    try { applyEnter(btn); } catch(_) {}
+    try { if (skipBtn) applyEnter(skipBtn); } catch(_) {}
+    
+    const handler = () => {
+      btn.removeEventListener("click", handler);
+      if (skipBtn) skipBtn.removeEventListener("click", skipHandler);
+      try { applyExit(btn); } catch(_) { btn.style.display = "none"; }
+      try { if (skipBtn) applyExit(skipBtn); } catch(_) { if (skipBtn) skipBtn.style.display = "none"; }
+      // iOS audio unlock on user gesture
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        const silentAudio = new Audio("https://cdn.jsdelivr.net/gh/anars/blank-audio/1-second-of-silence.mp3");
+        silentAudio.play().then(() => {
+          console.log(":large_green_circle: Silent audio successfully played to unlock iOS");
+          silentAudio.pause();
+          silentAudio.currentTime = 0;
+        }).catch(e => {
+          console.warn(":red_circle: Silent audio failed:", e);
+        });
+      }
+      resolve();
+    };
+    
+    const skipHandler = () => {
+      this.skipRequested = true;
+      this.clearAllTimers();
+      this.audioManager.stopAll();
+      this.typewriterManager.stop();
+      this.annotationManager.clearAnnotations();
+      handler();
+    };
+    
+    btn.addEventListener("click", handler);
+    if (skipBtn) skipBtn.addEventListener("click", skipHandler);
+  });
+}
+
+showLottieTick() {
+  if (!window.lottie || !document.getElementById('tick-lottie')) return;
+  const container = document.getElementById('tick-lottie');
+  container.style.display = 'block';
+  const animation = lottie.loadAnimation({
+    container: container,
+    renderer: 'svg',
+    loop: false,
+    autoplay: true,
+    path: 'https://lottie.host/f33d756c-3737-4340-a367-bbdd3217ba65/XHYDBaVL0p.lottie' // :white_tick: Replace with your tick JSON
+  });
+  setTimeout(() => {
+    container.style.display = 'none';
+    animation.destroy();
+  }, this.config.floatIconDuration || 2000);
+}
+
+async playSequence(results, index = 0) {
+  if (!this.validateResults(results)) return;
+  this.isPlaying = true;
+  this.currentIndex = index;
+  try {
+    // ensure skip is bound and visible while we play
+    this.bindGlobalSkip();
+    const skipBtn = document.getElementById('skipbtn');
+    if (skipBtn) skipBtn.style.display = 'inline-block';
+    if (index >= results.length) {
+      this.showCTA();
+      this.isPlaying = false;
+      return;
+    }
+    await this.playResult(results[index]);
+      if (this.skipRequested) {
+        // jump immediately to next
+        const nextIndex = index + 1;
+        this.skipRequested = false;
+        return this.playSequence(results, nextIndex);
+      }
+      await this.delay(this.config.recapDelay);
+    const isLast = index === results.length - 1;
+  if (!isLast) {
+      await this.waitForNextButton();
+      // Ensure skip proceeds and flag doesn't leak to next step
+      const nextIndex = index + 1;
+      this.skipRequested = false;
+      return this.playSequence(results, nextIndex);
+    } else {
+      // No button shown on final step, just end
+      this.showCTA(); // or trigger auto scroll / continue UX
+      this.isPlaying = false;
+    }
+  } catch (error) {
+    console.error('Error in playSequence:', error);
+    this.isPlaying = false;
+  }
+}
+
+async playResult(result) {
+  const {
+    intro_url,
+    explainer_url,
+    recap_url,
+    highlights,
+    question_text,
+    intro_text,
+    script_text,
+    answer_type,
+    answer_text
+  } = result;
+  // Reset previous markers
+  //document.getElementById("correct-answer-block").style.display = "none";
+  //document.getElementById("incorrect-answer-block").style.display = "none";
+	document.getElementById("typewriter").innerHTML = "";
+
+  try {
+    // 1. Intro Audio + Type question and intro
+    const questionContent = this.formatQuestionContent({ question_text, intro_text, answer_text });
+    
+    const introAudioPromise = intro_url ? this.audioManager.playAudio(intro_url, this.playbackSpeed) : Promise.resolve();
+    const introTypingPromise = this.typewriterManager.typeContent(questionContent);
+    
+         const statusEl = document.getElementById("answer-status");
+statusEl.style.display = "block";
+if (answer_type === "correct") {
+  statusEl.textContent = "You got this correct! ✔";
+  statusEl.style.color = "#1b5728";
+} else {
+  statusEl.textContent = "You got this incorrect ✖";
+  statusEl.style.color = "#891717";
+};
+
+    await Promise.all([introAudioPromise, introTypingPromise]);
+    if (this.skipRequested) return; // Exit early if skip requested
+
+statusEl.style.display = "none";
+statusEl.textContent = "";
+
+
+    // 2. Delay then Explainer Audio + Type explainer
+    await this.delay(this.config.explainerDelay || 400);
+    if (this.skipRequested) return; // Exit early if skip requested
+    
+    const explainerAudioPromise = explainer_url ? this.audioManager.playAudio(explainer_url,this.playbackSpeed) : Promise.resolve();
+    const explainerTypingPromise = this.typewriterManager.typeContent(script_text);
+    await Promise.all([explainerAudioPromise, explainerTypingPromise]);
+    if (this.skipRequested) return; // Exit early if skip requested
+    
+    // 3. If correct, show float effects
+
+ 
+    // 4. Delay and then play recap audio with synced highlight annotation
+    await this.delay(this.config.recapDelay || 600);
+    if (this.skipRequested) return; // Exit early if skip requested
+    
+       // 3. Play recap audio and show annotations in parallel
+if (recap_url && highlights && highlights.length > 0) {
+  this.showFloatEffects();
+  
+  // Start both recap audio and annotations at the same time
+  await Promise.all([
+    this.audioManager.playAudio(recap_url,this.playbackSpeed),
+    this.delay(this.config.postRecapDelay)
+      .then(() => this.annotationManager.annotateHighlights(highlights, this.config.annotationDelay))
+  ]);
+} else if (recap_url) {
+  // Just play recap if no annotations
+  await this.audioManager.playAudio(recap_url);
+} else if (highlights && highlights.length > 0) {
+  // Just show annotations if no recap
+  this.showFloatEffects();
+  await this.annotationManager.annotateHighlights(highlights, this.config.annotationDelay);
+}
+     
+    } catch (error) {
+      console.error('Error playing result:', error);
+      // Continue to next result even if this one fails
+    }
+  }
+  
+formatQuestionContent(result) {
+  const { question_text, answer_text } = result;
+  let content = '';
+  if (question_text) {
+    content += `<strong>Q:</strong> ${question_text}\n\n`;
+  }
+  if (answer_text) {
+    content += `Your answer: ${answer_text}\n\n`;
+  }
+  return content;
+}
+
+formatScriptContent(result) {
+  const { script_text } = result;
+  return script_text ? script_text : '';
+}
+
+// Keep this for backward compatibility if needed elsewhere
+formatContent(result) {
+  return this.formatQuestionContent(result) + this.formatScriptContent(result);
+}
+
+ 
+  showFloatEffects() {
+    if (typeof floatIcon !== 'undefined' && typeof floatXP !== 'undefined') {
+      floatIcon.style.opacity = '0';
+      floatXP.style.opacity = '0';
+     
+      setTimeout(() => {
+        floatIcon.style.opacity = '0';
+        floatXP.style.opacity = '0';
+      }, this.config.floatIconDuration);
+    }
+  }
+ 
+showCTA() {
+  // Get elements safely
+  const cta          = document.querySelector('#results-view .cta') || document.getElementById('cta');
+  const nxtControls  = document.querySelector('#results-view .next-controls') || document.getElementById('nextControls');
+  const nxtButton    = document.getElementById('nextBtn');
+  const replayButton = document.getElementById('replay-cta-btn');
+
+  if (!cta) {
+    console.warn('CTA container not found.');
+    return;
+  }
+
+  // Hide nav controls if present with animation
+  if (nxtControls) {
+    try { applyExit(nxtControls); } catch(_) { nxtControls.style.display = 'none'; }
+  }
+
+  // Show CTA section with animation
+  cta.style.display = 'block';
+  try { applyEnter(cta); } catch(_) {}
+
+  // (Optional) wire up replay
+  if (replayButton) {
+    replayButton.onclick = () => {
+      cta.style.display = 'none';
+      const player = ensurePlayer();
+      if (!player) return;
+      player.stop();
+      player.playSequence(window.cachedResults || [], 0);
+    };
+  }
+
+  // (Optional) wire up “Let’s move on”
+  if (nxtButton) {
+    nxtButton.onclick = () => {
+      navigateToTile(tileIndex + 1);
+    };
+  }
+}
+
+
+ 
+  validateResults(results) {
+    if (!Array.isArray(results)) {
+      console.warn("Invalid results passed to playSequence:", results);
+      return false;
+    }
+   
+    if (results.length === 0) {
+      console.warn("Empty results array passed to playSequence");
+      return false;
+    }
+   
+    return true;
+  }
+ 
+  // Timer management for skip functionality
+  addTimer(timerId) {
+    this.activeTimers.add(timerId);
+  }
+  
+  removeTimer(timerId) {
+    this.activeTimers.delete(timerId);
+  }
+  
+  clearAllTimers() {
+    this.activeTimers.forEach(timerId => {
+      clearTimeout(timerId);
+      clearInterval(timerId);
+    });
+    this.activeTimers.clear();
+  }
+  
+  // Enhanced delay with skip support
+  async delay(ms) {
+    if (this.skipRequested) return Promise.resolve();
+    
+    return new Promise(resolve => {
+      const timerId = setTimeout(() => {
+        this.removeTimer(timerId);
+        if (!this.skipRequested) resolve();
+      }, ms);
+      this.addTimer(timerId);
+    });
+  }
+
+  // Utility methods for debugging and control
+  stop() {
+    this.isPlaying = false;
+    this.skipRequested = true;
+    this.clearAllTimers();
+    this.audioManager.stopAll();
+    this.typewriterManager.stop();
+    this.annotationManager.clearAnnotations();
+  }
+
+  debugAnnotations() {
+    this.annotationManager.debugAnnotations();
+  }
+
+  updateConfig(newConfig) {
+    this.config = { ...this.config, ...newConfig };
+    this.typewriterManager.delay = this.config.typewriterDelay;
+  }
+}
+
+
+function replayFeedback() {
+if (!window.cachedResults || !Array.isArray(window.cachedResults)) {
+console.warn("No cached results found.");
+return;
+}
+const saveButton = document.getElementById("save-cta-btn");
+const replayButton = document.getElementById("replay-cta-btn");
+const nxtControls  = document.querySelector('#results-view .next-controls') || document.getElementById('nextControls');
+saveButton.style.display = 'none';
+replayButton.style.display ='none';
+nxtControls.style.display = 'block';
+
+
+sequencePlayer.stop();
+sequencePlayer.playSequence(window.cachedResults,0);
+
+}
+// Timings
+// sequencePlayer.updateConfig({
+//   explainerTextDelay: 500,  // Start text 500ms after audio
+//   annotationDelay: 800,     // Faster annotations
+//   postRecapDelay: 1000      // Longer pause before annotations
+// });
+
+// Debugger annotation issues:
+// sequencePlayer.debugAnnotations();
+renderTile(0);
+// Animate in first tile on load
+try {
+  const _c = document.getElementById('knodeTileContainer');
+  if (_c && _c.firstElementChild) {
+    _c.firstElementChild.style.display = 'block';
+    applyEnter(_c.firstElementChild);
+  }
+} catch(_) {}
+
+</script>
