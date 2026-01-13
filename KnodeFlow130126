@@ -3,6 +3,91 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knode Learning Flow</title>
+<!--
+================================================================================
+KNODE LEARNING FLOW - HIGH-LEVEL DOCUMENTATION
+================================================================================
+
+OVERVIEW:
+---------
+This file is the core of the Knode learning platform experience. It handles:
+1. Loading and displaying video content
+2. Rendering interactive quizzes (MCQ, chat-based, free-text)
+3. Showing explainer/feedback content with typewriter animations
+4. Managing tile-based navigation between learning modules
+
+ARCHITECTURE:
+-------------
+The code is organized into multiple <script> blocks for Webflow compatibility:
+
+Block 1 (dataStub.js): Tile data and navigation
+  - tileData[]: Array of content tiles (video, mcqQuiz, chatQuiz, etc.)
+  - navigateToTile(): Smooth transitions between tiles
+  - renderTile(): Dispatcher that calls the appropriate renderer
+
+Block 2 (renderTiles.js): Tile rendering functions
+  - renderVideoTile(): Video player with scene-based notes
+  - renderQuizTile(): MCQ quiz with progress tracking
+  - renderChatQuizTile(): Chat-style interactive quizzes
+  - renderTextQuizTile(): Free-form text response quizzes
+  - renderScenarioTile(): Scenario-based decision quizzes
+
+Block 3 (quizVariants.js): Quiz mode handlers
+  - runMCQ(): MCQ branching quiz flow
+  - runFreeText(): Free-text response flow with hint system
+  - showExplainerWithTransition(): Results transition handler
+
+Block 4 (chatshell.js): UI Components
+  - ChatShell class: Polished chat interface component
+  - ExplainerTypewriter: Typewriter effect for feedback
+  - KnodeAnimations: Animation utilities (fade, scale, stagger)
+
+Block 5 (submitEP_SequenceManager.js): Results & Playback
+  - submitAnswers(): Submit quiz to backend, receive feedback
+  - SequencePlayer: Orchestrates audio + typewriter + annotations
+  - AudioManager: Handles audio playback with iOS support
+  - AnnotationManager: RoughNotation highlights on text
+
+CONTENT TYPES:
+--------------
+- "video": Video tile with scene-based notes (Knoments)
+- "mcqQuiz": Multiple choice quiz with progress bar
+- "chatQuiz": Chat-style quiz (supports 3 modes):
+    - legacy: Original chat with options
+    - chatmcq: MCQ questions in chat format with grading
+    - chatfreetext: Free-text responses with hint system
+- "textQuiz": Long-form text response
+- "scenarioQuiz": Decision-tree scenario
+
+DATA FLOW:
+----------
+1. Page loads → renderTile(0) displays first tile
+2. User interacts → answers collected in userAnswers[]
+3. Submit → POST to Supabase endpoint → receives feedback array
+4. SequencePlayer plays feedback with audio + typewriter + annotations
+5. navigateToTile() moves to next content
+
+FEATURE FLAGS:
+--------------
+- ENABLE_POLISH_ANIMATIONS: Toggle smooth animations (respects prefers-reduced-motion)
+- ENABLE_CHAT_SHELL: Toggle polished chat UI vs legacy
+
+TYPOGRAPHY SYSTEM:
+------------------
+- Body: Inter (clean, professional)
+- Headings: Space Grotesk (modern, bold)
+- Accents: Caveat (handwritten feel for explanations)
+
+COLOR PALETTE:
+--------------
+- Primary: #3730a3 (deep indigo)
+- Accent: #8b5cf6 (violet)
+- Success: #10b981 (emerald)
+- Error: #ef4444 (red)
+- Highlight: #fcd34d (amber)
+
+================================================================================
+-->
 <script>
   // Feature flags for polish improvements
   window.ENABLE_POLISH_ANIMATIONS = window.ENABLE_POLISH_ANIMATIONS !== false;
