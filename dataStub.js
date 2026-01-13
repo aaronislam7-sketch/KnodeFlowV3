@@ -37,72 +37,28 @@ function applyExit(el) {
   }, 300);
 }
 
-// Swap tile helper: smooth animated transitions between tiles
+// Swap tile helper: animate out old, in new
 function navigateToTile(nextIndex) {
   const container = document.getElementById('knodeTileContainer');
   if (!container) { return renderTile(nextIndex); }
-  
-  // Validate next index
-  if (nextIndex < 0 || nextIndex >= tileData.length) {
-    console.log('[navigateToTile] Reached end of tiles');
-    return;
-  }
-  
   const current = container.firstElementChild;
-  
-  // Smooth transition with crossfade effect
   if (current) {
-    // Add exit animation class
-    current.style.transition = 'opacity 280ms ease-out, transform 280ms ease-out';
-    current.style.opacity = '0';
-    current.style.transform = 'translateY(-12px) scale(0.98)';
-    
+    applyExit(current);
     setTimeout(() => {
-      // Render next tile
+      // Render next and animate in
       tileIndex = nextIndex;
       renderTile(tileIndex);
-      
       const newChild = container.firstElementChild;
       if (newChild) {
-        // Setup enter animation
-        newChild.style.opacity = '0';
-        newChild.style.transform = 'translateY(16px) scale(0.98)';
         newChild.style.display = 'block';
-        
-        // Trigger reflow then animate in
-        newChild.offsetHeight;
-        newChild.style.transition = 'opacity 320ms ease-out, transform 320ms ease-out';
-        newChild.style.opacity = '1';
-        newChild.style.transform = 'translateY(0) scale(1)';
-        
-        // Clean up inline styles after animation
-        setTimeout(() => {
-          newChild.style.transition = '';
-          newChild.style.transform = '';
-        }, 350);
+        applyEnter(newChild);
       }
-    }, 300);
+    }, 320);
   } else {
-    // First tile - just render and animate in
     tileIndex = nextIndex;
     renderTile(tileIndex);
-    
     const newChild = container.firstElementChild;
-    if (newChild) {
-      newChild.style.opacity = '0';
-      newChild.style.transform = 'translateY(20px)';
-      newChild.style.display = 'block';
-      
-      newChild.offsetHeight;
-      newChild.style.transition = 'opacity 400ms ease-out, transform 400ms ease-out';
-      newChild.style.opacity = '1';
-      newChild.style.transform = 'translateY(0)';
-      
-      setTimeout(() => {
-        newChild.style.transition = '';
-        newChild.style.transform = '';
-      }, 420);
-    }
+    if (newChild) applyEnter(newChild);
   }
 }
 

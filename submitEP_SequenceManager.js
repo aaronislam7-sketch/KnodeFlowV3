@@ -35,25 +35,12 @@ function submitAnswers() {
     // Cache for replay
     window.cachedResults = rendered;
 
-    // Swap to results view with enhanced transitions
+    // Swap to results view with transitions
 applyExit(quizApp);
 applyExit(quizHeader);
 applyExit(quizContainer);
-
-// Show results with entrance animation
 resultsView.style.display = 'block';
-resultsView.classList.add('kn-results-enter');
-
-// Add success indicator if user got answers correct
-const correctCount = rendered.filter(r => r.answer_type === 'correct').length;
-if (correctCount > rendered.length / 2) {
-  resultsView.classList.add('kn-success');
-}
-
-// Clean up animation classes after animation completes
-setTimeout(() => {
-  resultsView.classList.remove('kn-results-enter');
-}, 550);
+applyEnter(resultsView);
 
 // Give the browser a tick to paint the new DOM
 setTimeout(() => {
