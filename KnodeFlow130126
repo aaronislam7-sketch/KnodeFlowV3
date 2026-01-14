@@ -88,116 +88,779 @@ COLOR PALETTE:
 
 ================================================================================
 -->
+<!-- ============================================================
+     WEBFLOW BLOCK 0: Feature Flags & Configuration
+     ============================================================ -->
 <script>
   // Feature flags for polish improvements
   window.ENABLE_POLISH_ANIMATIONS = window.ENABLE_POLISH_ANIMATIONS !== false;
   window.ENABLE_CHAT_SHELL = window.ENABLE_CHAT_SHELL !== false;
+  window.ENABLE_TWO_COLUMN_LAYOUT = true;
 </script>
 </head>
-<div id="knodewrapper">
-<div id="knodeTileContainer"></div>
 
-<div id="quiz-container" class="fullscreen-wrapper">
+<!-- ============================================================
+     WEBFLOW BLOCK 0.5: Main HTML Structure
+     ============================================================ -->
+<div id="knodewrapper">
+  
+  <!-- Sticky Header Bar (Mobile) - Progress, XP, Notes -->
+  <div id="knode-sticky-header" class="knode-sticky-header">
+    <button class="knode-header-back" id="headerBackBtn" aria-label="Go back">←</button>
+    <div class="knode-header-progress">
+      <span id="headerTileCount">1/5</span>
+      <div class="knode-header-progress-bar">
+        <div class="knode-header-progress-fill" id="headerProgressFill"></div>
+      </div>
+    </div>
+    <div class="knode-header-xp" id="headerXP">0 XP</div>
+    <button class="knode-header-notes" id="headerNotesBtn" aria-label="Open notes">📝</button>
+  </div>
+
+  <!-- Tile Navigation Dots -->
+  <div id="knode-tile-nav" class="knode-tile-nav">
+    <!-- Dots rendered dynamically -->
+  </div>
+
+  <!-- Main Tile Container - Vertical Scroll -->
+  <div id="knodeTileContainer" class="knode-tile-container"></div>
+
+  <!-- Results View (shared across quiz types) -->
   <div id="results-view" class="explainer-container" style="display:none;">
     <!-- Float Effects -->
     <div class="float-icon" id="floatIcon">✔</div>
     <div class="float-xp" id="floatXP">+10XP</div>
 
     <!-- Answer Status -->
-    <div id="answer-status" style="display: none; font-weight: bold; font-size: 1.2rem; padding-bottom: 1rem; text-align:center;"></div>
+    <div id="answer-status" class="answer-status"></div>
 
     <!-- Typewriter Output -->
     <div id="typewriter" class="typewriter-output"></div>
 
     <!-- Navigation Controls -->
-    <div class="next-container">
+    <div class="next-controls" id="nextControls">
       <button id="next-btn" class="knode-btn" style="display:none;">Next Question</button>
       <button id="skipbtn" class="knode-btn" style="display:none;">Skip</button>
       <button id="speed-toggle" class="speed-toggle">Speed: 1x</button>
-      <button id="replay-cta-btn" class="knode-btn" style="display:none;">Replay</button>
-  
     </div>
 
     <!-- Call to Action -->
     <div class="cta" id="cta">
-      <button id="save-cta-btn" class="knode-btn" onclick="window.location.href='/log-in'">Save XP & Streak?</button>
       <button id="replay-cta-btn" class="knode-btn" onclick="replayFeedback()">Replay</button>
+      <button id="nextBtn" class="knode-btn primary">Let's move on →</button>
     </div>
 
-    <!-- Audio Permission Prompt -->
+    <!-- Audio Permission Prompt (iOS) -->
     <div id="audio-init" class="audio-init" style="display:none;">
       <button id="enable-audio">🔈 Tap to Enable Audio</button>
     </div>
 
-    <!-- Mascot and Effects -->
+    <!-- Effects -->
     <div id="confetti-lottie" class="lottie-confetti"></div>
     <div id="tick-lottie" class="lottie-tick"></div>
-    <img src="https://esp01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fcdn.prod.website-files.com%2F6821cff7a114d28d2d37eb72%2F6842d8a42693e55fa4d185c7_kno-character-teacher.png&data=05%7C02%7C%7C3becfb7ddc7d4f43168808ddd071b317%7C84df9e7fe9f640afb435aaaaaaaaaaaa%7C1%7C0%7C638895908937430561%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=E2SLSBm3O47tirydk9xDS1yCZcqK3QLNFjsqRmOwz0M%3D&reserved=0"
-      alt="Kno Teacher"
-      class="mascot">
   </div>
-</div>
+
+  <!-- Notes Modal (Mobile) -->
+  <div id="knode-notes-modal" class="knode-notes-modal" style="display:none;">
+    <div class="knode-notes-modal-content">
+      <div class="knode-notes-modal-header">
+        <h3>📝 Your Notes</h3>
+        <button class="knode-notes-close" id="notesCloseBtn">×</button>
+      </div>
+      <textarea id="userNotesInput" class="knode-notes-textarea" placeholder="Jot down your thoughts..."></textarea>
+      <div class="knode-notes-footer">
+        <button class="knode-btn" id="notesSaveBtn">Save Notes</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 </html>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 1: Main CSS Styles
+     ============================================================ -->
 <style>
 /**
- * Frame.css - Knode Learning Flow Polish Framework
- * Complete embeddable version with all components
+ * KnodeFlow CSS - Two-Column Layout with Sticky Header
+ * Optimized for learning experience with video left, sidebar right
  */
 
-/* ==================== ANIMATION TOKENS ==================== */
+/* ==================== CSS VARIABLES ==================== */
 :root {
-  /* Easing */
-  --kn-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --kn-ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --kn-ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --kn-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  
-  /* Timing */
-  --kn-fast: 180ms;
-  --kn-med: 240ms;
-  --kn-slow: 320ms;
-  
-  /* Frame dimensions - responsive, stable */
-  --kn-frame-h: clamp(480px, 70vh, 760px);
-  --kn-frame-w: min(900px, 100vw - 32px);
-  --kn-frame-padding: clamp(1rem, 3vw, 2rem);
-  
-  /* Chat/Quiz specific */
-  --kn-chat-h: clamp(420px, 65vh, 680px);
-  --kn-mcq-h: clamp(500px, 72vh, 780px);
-  
-  /* Typography scaling */
-  --kn-text-xs: clamp(0.75rem, 2vw, 0.875rem);
-  --kn-text-sm: clamp(0.875rem, 2.2vw, 1rem);
-  --kn-text-base: clamp(1rem, 2.5vw, 1.125rem);
-  --kn-text-lg: clamp(1.125rem, 3vw, 1.5rem);
-  --kn-text-xl: clamp(1.5rem, 4vw, 2.25rem);
-  
-  /* Spacing */
-  --kn-gap-xs: 0.5rem;
-  --kn-gap-sm: 0.75rem;
-  --kn-gap-md: 1rem;
-  --kn-gap-lg: 1.5rem;
-  --kn-gap-xl: 2rem;
-  
-  /* Colors */
+  /* Brand Colors */
   --knode-primary: #3730a3;
   --knode-accent: #8b5cf6;
   --knode-highlight: #fcd34d;
-  --knode-note: #fef3c7;
-  --whiteboard-bg: #fffef7;
-  --pill-bg: #e0e7ff;
+  --knode-success: #10b981;
+  --knode-error: #ef4444;
+  --knode-bg: #faf9f7;
+  --knode-surface: #ffffff;
+  --knode-text: #1f2937;
+  --knode-text-muted: #6b7280;
+  
+  /* Typography */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Space Grotesk', var(--font-body);
+  --font-accent: 'Caveat', cursive;
+  
+  /* Layout - Two Column */
+  --content-width: 65%;
+  --sidebar-width: 35%;
+  --max-content-width: 1400px;
+  --header-height: 56px;
+  
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  
+  /* Animation */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-med: 250ms;
+  --duration-slow: 400ms;
   
   /* Shadows */
-  --kn-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --kn-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --kn-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.15);
-  --kn-shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
   
-  /* Focus ring */
-  --kn-focus-ring: 0 0 0 3px rgba(139, 92, 246, 0.3);
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+/* ==================== BASE STYLES ==================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--knode-text);
+  background: var(--knode-bg);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==================== STICKY HEADER BAR ==================== */
+.knode-sticky-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: var(--knode-surface);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-md);
+  z-index: 1000;
+  box-shadow: var(--shadow-sm);
+}
+
+.knode-header-back {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--knode-text);
+  transition: background var(--duration-fast) ease;
+}
+
+.knode-header-back:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.knode-header-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  max-width: 200px;
+  margin: 0 var(--space-md);
+}
+
+.knode-header-progress span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--knode-primary);
+  white-space: nowrap;
+}
+
+.knode-header-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(139,92,246,0.15);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.knode-header-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--knode-accent), var(--knode-primary));
+  border-radius: 999px;
+  transition: width var(--duration-med) var(--ease-out);
+  width: 20%;
+}
+
+.knode-header-xp {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--knode-accent);
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(139,92,246,0.1);
+  border-radius: 999px;
+}
+
+.knode-header-notes {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast) ease;
+}
+
+.knode-header-notes:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* ==================== TILE NAVIGATION DOTS ==================== */
+.knode-tile-nav {
+  position: fixed;
+  right: var(--space-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  z-index: 100;
+}
+
+.knode-tile-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.2);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.knode-tile-dot:hover {
+  background: rgba(139,92,246,0.4);
+}
+
+.knode-tile-dot.active {
+  background: var(--knode-accent);
+  border-color: var(--knode-surface);
+  box-shadow: 0 0 0 2px var(--knode-accent);
+}
+
+.knode-tile-dot.completed {
+  background: var(--knode-success);
+}
+
+/* ==================== MAIN TILE CONTAINER ==================== */
+.knode-tile-container {
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+  scroll-behavior: smooth;
+}
+
+/* ==================== TWO-COLUMN TILE LAYOUT ==================== */
+.knode-tile {
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: row;
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+  padding: var(--space-xl);
+  gap: var(--space-xl);
+}
+
+.knode-tile-main {
+  flex: 0 0 var(--content-width);
+  display: flex;
+  flex-direction: column;
+}
+
+.knode-tile-sidebar {
+  flex: 0 0 var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+/* ==================== VIDEO TILE STYLES ==================== */
+.knode-video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: var(--knode-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.knode-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--knode-bg);
+}
+
+.knode-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-med) ease;
+}
+
+.knode-video-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.knode-video-complete-badge {
+  background: var(--knode-success);
+  color: white;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ==================== SIDEBAR PANELS ==================== */
+.knode-sidebar-panel {
+  background: var(--knode-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.knode-sidebar-panel h3 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--knode-primary);
+  margin: 0 0 var(--space-md) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.knode-sidebar-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.knode-sidebar-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--knode-text-muted);
+}
+
+.knode-sidebar-progress-bar {
+  height: 8px;
+  background: rgba(139,92,246,0.15);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.knode-sidebar-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--knode-accent), var(--knode-primary));
+  border-radius: 999px;
+  transition: width var(--duration-med) var(--ease-out);
+}
+
+.knode-sidebar-xp {
+  text-align: center;
+  padding: var(--space-md);
+  background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(55,48,163,0.1));
+  border-radius: var(--radius-md);
+}
+
+.knode-sidebar-xp-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--knode-accent);
+}
+
+.knode-sidebar-xp-label {
+  font-size: 0.75rem;
+  color: var(--knode-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.knode-notes-area {
+  min-height: 120px;
+}
+
+.knode-notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--space-sm);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-accent);
+  font-size: 1rem;
+  resize: vertical;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.knode-notes-textarea:focus {
+  outline: none;
+  border-color: var(--knode-accent);
+}
+
+.knode-notes-textarea::placeholder {
+  color: var(--knode-text-muted);
+}
+
+/* ==================== QUIZ TILE STYLES ==================== */
+.knode-quiz-container {
+  background: var(--knode-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 400px;
+}
+
+.knode-quiz-question {
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  color: var(--knode-primary);
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  max-width: 600px;
+  line-height: 1.3;
+}
+
+.knode-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 500px;
+}
+
+.knode-quiz-option {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--knode-surface);
+  border: 2px solid rgba(0,0,0,0.1);
+  border-radius: var(--radius-md);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  position: relative;
+}
+
+.knode-quiz-option:hover {
+  border-color: var(--knode-accent);
+  background: rgba(139,92,246,0.05);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.knode-quiz-option.selected {
+  background: var(--knode-accent);
+  border-color: var(--knode-accent);
+  color: white;
+}
+
+.knode-quiz-option.correct {
+  background: rgba(16,185,129,0.1);
+  border-color: var(--knode-success);
+  color: var(--knode-success);
+}
+
+.knode-quiz-option.incorrect {
+  background: rgba(239,68,68,0.1);
+  border-color: var(--knode-error);
+  color: var(--knode-error);
+}
+
+/* ==================== CTA BUTTONS ==================== */
+.knode-btn {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: var(--space-md) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.knode-btn.primary {
+  background: linear-gradient(135deg, var(--knode-accent), var(--knode-primary));
+  color: white;
+  box-shadow: 0 4px 12px rgba(139,92,246,0.3);
+}
+
+.knode-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139,92,246,0.4);
+}
+
+.knode-btn.secondary {
+  background: transparent;
+  color: var(--knode-text);
+  border: 2px solid rgba(0,0,0,0.1);
+}
+
+.knode-btn.secondary:hover {
+  border-color: var(--knode-accent);
+  color: var(--knode-accent);
+}
+
+.knode-cta-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  background: var(--knode-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.knode-completion-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(16,185,129,0.1);
+  color: var(--knode-success);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+/* ==================== NOTES MODAL (Mobile) ==================== */
+.knode-notes-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.knode-notes-modal-content {
+  background: var(--knode-surface);
+  width: 100%;
+  max-width: 500px;
+  max-height: 70vh;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp var(--duration-med) var(--ease-out);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.knode-notes-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.knode-notes-modal-header h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+}
+
+.knode-notes-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(0,0,0,0.05);
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.knode-notes-footer {
+  margin-top: var(--space-md);
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+  :root {
+    --content-width: 60%;
+    --sidebar-width: 40%;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hide desktop sidebar on mobile */
+  .knode-tile-sidebar {
+    display: none;
+  }
+  
+  .knode-tile-main {
+    flex: 1;
+  }
+  
+  .knode-tile {
+    padding: var(--space-md);
+  }
+  
+  /* Hide tile nav dots on mobile */
+  .knode-tile-nav {
+    display: none;
+  }
+  
+  /* Full width content on mobile */
+  .knode-quiz-container {
+    padding: var(--space-lg);
+  }
+  
+  .knode-quiz-question {
+    font-size: 1.375rem;
+  }
+  
+  .knode-video-wrapper {
+    border-radius: var(--radius-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .knode-sticky-header {
+    padding: 0 var(--space-sm);
+  }
+  
+  .knode-header-progress {
+    max-width: 120px;
+  }
+  
+  .knode-header-xp {
+    font-size: 0.75rem;
+    padding: var(--space-xs);
+  }
+  
+  .knode-tile {
+    padding: var(--space-sm);
+  }
+}
+
+/* ==================== VIDEO INFO BAR ==================== */
+.knode-video-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.knode-video-topic {
+  background: var(--knode-primary);
+  color: white;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.knode-video-title {
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--knode-text);
+}
+
+.knode-video-duration {
+  color: var(--knode-text-muted);
+  font-size: 0.875rem;
+}
+
+.knode-video-cta-buttons {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+/* ==================== DESKTOP: Hide Header on Large Screens ==================== */
+@media (min-width: 769px) {
+  .knode-sticky-header {
+    display: none;
+  }
+  
+  .knode-tile-container {
+    margin-top: 0;
+  }
+  
+  .knode-tile {
+    min-height: 100vh;
+    padding-top: var(--space-2xl);
+  }
 }
 
 /* ==================== REDUCED MOTION ==================== */
@@ -5942,6 +6605,135 @@ sequencePlayer.playSequence(window.cachedResults,0);
 
 // Debugger annotation issues:
 // sequencePlayer.debugAnnotations();
+
+/* ============================================================
+   WEBFLOW BLOCK 6.5: Helper Functions for Two-Column Layout
+   ============================================================ */
+
+// Initialize user XP
+window.userXP = window.userXP || 0;
+
+/**
+ * Update header progress bar and tile count
+ */
+function updateHeaderProgress() {
+  const progressFill = document.getElementById("headerProgressFill");
+  const tileCount = document.getElementById("headerTileCount");
+  const headerXP = document.getElementById("headerXP");
+  
+  if (progressFill && typeof tileData !== 'undefined') {
+    const progress = ((tileIndex + 1) / tileData.length) * 100;
+    progressFill.style.width = `${progress}%`;
+  }
+  if (tileCount && typeof tileData !== 'undefined') {
+    tileCount.textContent = `${tileIndex + 1}/${tileData.length}`;
+  }
+  if (headerXP) {
+    headerXP.textContent = `${window.userXP || 0} XP`;
+  }
+  
+  // Update tile navigation dots
+  updateTileNav();
+}
+
+/**
+ * Update tile navigation dots
+ */
+function updateTileNav() {
+  const nav = document.getElementById("knode-tile-nav");
+  if (!nav || typeof tileData === 'undefined') return;
+  
+  nav.innerHTML = tileData.map((tile, idx) => `
+    <div class="knode-tile-dot ${idx === tileIndex ? 'active' : ''} ${idx < tileIndex ? 'completed' : ''}" 
+         onclick="navigateToTile(${idx})" 
+         title="${tile.title || 'Tile ' + (idx + 1)}"></div>
+  `).join('');
+}
+
+/**
+ * Award XP and update displays
+ */
+function awardXP(amount) {
+  window.userXP = (window.userXP || 0) + amount;
+  
+  // Update sidebar XP
+  const sidebarXP = document.getElementById("sidebarXP");
+  if (sidebarXP) sidebarXP.textContent = window.userXP;
+  
+  // Update header XP
+  const headerXP = document.getElementById("headerXP");
+  if (headerXP) headerXP.textContent = `${window.userXP} XP`;
+  
+  console.log(`[XP] Awarded ${amount}XP, total: ${window.userXP}`);
+}
+
+/**
+ * Smooth scroll to next tile
+ */
+function smoothScrollToNextTile() {
+  navigateToTile(tileIndex + 1);
+}
+
+/**
+ * Initialize notes modal handlers
+ */
+function initNotesModal() {
+  const notesBtn = document.getElementById("headerNotesBtn");
+  const notesModal = document.getElementById("knode-notes-modal");
+  const notesClose = document.getElementById("notesCloseBtn");
+  const notesSave = document.getElementById("notesSaveBtn");
+  
+  if (notesBtn && notesModal) {
+    notesBtn.onclick = () => {
+      notesModal.style.display = "flex";
+    };
+  }
+  
+  if (notesClose && notesModal) {
+    notesClose.onclick = () => {
+      notesModal.style.display = "none";
+    };
+  }
+  
+  if (notesSave && notesModal) {
+    notesSave.onclick = () => {
+      const notes = document.getElementById("userNotesInput")?.value || "";
+      console.log("[Notes] Saved:", notes);
+      // Could save to localStorage or API here
+      localStorage.setItem("knode_user_notes", notes);
+      notesModal.style.display = "none";
+    };
+  }
+  
+  // Load saved notes
+  const savedNotes = localStorage.getItem("knode_user_notes");
+  if (savedNotes) {
+    const notesInput = document.getElementById("userNotesInput");
+    if (notesInput) notesInput.value = savedNotes;
+  }
+}
+
+/**
+ * Initialize back button
+ */
+function initBackButton() {
+  const backBtn = document.getElementById("headerBackBtn");
+  if (backBtn) {
+    backBtn.onclick = () => {
+      if (tileIndex > 0) {
+        navigateToTile(tileIndex - 1);
+      }
+    };
+  }
+}
+
+// Initialize on DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  initNotesModal();
+  initBackButton();
+  updateHeaderProgress();
+});
+
 renderTile(0);
 // Animate in first tile on load
 try {
@@ -5950,6 +6742,8 @@ try {
     _c.firstElementChild.style.display = 'block';
     applyEnter(_c.firstElementChild);
   }
+  // Initial progress update
+  updateHeaderProgress();
 } catch(_) {}
 
 </script>
