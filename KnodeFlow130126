@@ -18,39 +18,39 @@ This file is the core of the Knode learning platform experience. It handles:
 
 ARCHITECTURE:
 -------------
-The code is organized into multiple <script> blocks for Webflow compatibility:
+The code is organized into multiple <script> blocks for Webflow compatibility.
+Each block is marked with a comment: <!-- WEBFLOW BLOCK N: Description -->
 
-Block 1 (dataStub.js): Tile data and navigation
-  - tileData[]: Array of content tiles (video, mcqQuiz, chatQuiz, etc.)
-  - navigateToTile(): Smooth transitions between tiles
-  - renderTile(): Dispatcher that calls the appropriate renderer
+Block 0:   Feature Flags & Configuration
+Block 0.5: Main HTML Structure (header, tiles, modals)
+Block 1:   Main CSS Styles (two-column layout, responsive)
+Block 2:   Animations & ChatShell Module
+Block 3:   Text Quiz Tile Renderer
+Block 4:   Scenario Tile Renderer
+Block 5:   Quiz Modes (MCQ Branching & Free-Text)
+Block 6:   External Libraries (typewriter, rough-notation)
+Block 7:   Core Tile Rendering & Navigation
+           - tileData[]: Array of content tiles
+           - navigateToTile(): Smooth transitions
+           - renderTile(): Dispatcher
+           - renderVideoTile(): Two-column video layout
+           - renderQuizTile(): MCQ quiz
+           - renderChatQuizTile(): Chat-style quizzes
+Block 8:   Submit & Results Handler
+           - submitAnswers(): POST to Supabase
+           - SequencePlayer: Audio + typewriter + annotations
 
-Block 2 (renderTiles.js): Tile rendering functions
-  - renderVideoTile(): Video player with scene-based notes
-  - renderQuizTile(): MCQ quiz with progress tracking
-  - renderChatQuizTile(): Chat-style interactive quizzes
-  - renderTextQuizTile(): Free-form text response quizzes
-  - renderScenarioTile(): Scenario-based decision quizzes
-
-Block 3 (quizVariants.js): Quiz mode handlers
-  - runMCQ(): MCQ branching quiz flow
-  - runFreeText(): Free-text response flow with hint system
-  - showExplainerWithTransition(): Results transition handler
-
-Block 4 (chatshell.js): UI Components
-  - ChatShell class: Polished chat interface component
-  - ExplainerTypewriter: Typewriter effect for feedback
-  - KnodeAnimations: Animation utilities (fade, scale, stagger)
-
-Block 5 (submitEP_SequenceManager.js): Results & Playback
-  - submitAnswers(): Submit quiz to backend, receive feedback
-  - SequencePlayer: Orchestrates audio + typewriter + annotations
-  - AudioManager: Handles audio playback with iOS support
-  - AnnotationManager: RoughNotation highlights on text
+LAYOUT (Two-Column):
+--------------------
+Desktop: Content (65%) | Sidebar (35%)
+  - Sidebar: Progress, XP, Notes panels
+Mobile: Full-width content + Sticky header
+  - Header: Back, Progress, XP, Notes button
+  - Notes accessible via modal
 
 CONTENT TYPES:
 --------------
-- "video": Video tile with scene-based notes (Knoments)
+- "video": Video tile with two-column layout
 - "mcqQuiz": Multiple choice quiz with progress bar
 - "chatQuiz": Chat-style quiz (supports 3 modes):
     - legacy: Original chat with options
@@ -3238,7 +3238,9 @@ body, .learning-shell{
 
 </style>
 
-<!-- Polish Framework Scripts - Embedded for Webflow compatibility -->
+<!-- ============================================================
+     WEBFLOW BLOCK 2: Animations & ChatShell Module
+     ============================================================ -->
 <script>
 /**
  * KNODE LEARNING FLOW - COMPLETE EMBEDDABLE JAVASCRIPT
@@ -4199,6 +4201,9 @@ body, .learning-shell{
 })(window);
 </script>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 3: Text Quiz Tile Renderer
+     ============================================================ -->
 <script>
 function renderTextQuizTile(tile) {
   const container = document.getElementById("knodeTileContainer");
@@ -4305,6 +4310,9 @@ function renderTextQuizTile(tile) {
 }
 </script>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 4: Scenario Tile Renderer
+     ============================================================ -->
 <script>
 function renderScenarioTile(data) {
   const container = document.getElementById("knodeTileContainer");
@@ -4691,6 +4699,9 @@ observer.observe(document.body, { childList: true, subtree: true });
 }
 </script>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 5: Quiz Modes (MCQ Branching & Free-Text)
+     ============================================================ -->
 <script>
 /**
  * ==================== NEW QUIZ MODES ====================
@@ -5033,9 +5044,15 @@ window.GRADE_PREFIX_MAP = GRADE_PREFIX_MAP;
 
 </script>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 6: External Libraries
+     ============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/typewriter-effect@2.18.0/dist/core.js"></script>
 <script src="https://unpkg.com/rough-notation/lib/rough-notation.iife.js"></script>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 7: Core Tile Rendering & Navigation
+     ============================================================ -->
 <script>
 // Feature Flags
 window.ENABLE_ANIMATIONS = true;
@@ -5466,103 +5483,104 @@ function renderTile(index) {
   
  function renderVideoTile(data) {
  const container = document.getElementById("knodeTileContainer");
- console.log("tile called with:",data);
- 
-container.innerHTML = `
-  <div class="knode-tile">
-    <div class="video-wrapper">
-      <div class="video-inner">
+ console.log("[renderVideoTile] Two-column layout:", data);
+  
+  // Update header progress
+  updateHeaderProgress();
 
-        <video id="tileVideo" class="knode-video" controls playsinline autoplay style="width: 95%; height: 95%; object-fit: contain;">
-          <source src="${data.videoUrl}" type="video/mp4" />
-        </video>
-
-        <div class="pill-group">
-          <span class="pill">${data.topic}</span>
-          <span class="pill">${data.title}</span>
-          <span class="pill duration">⏱ ${data.duration}</span>
+  container.innerHTML = `
+    <div class="knode-tile" id="videoTile-${tileIndex}">
+      <!-- Main Content Area (Video) -->
+      <div class="knode-tile-main">
+        <div class="knode-video-wrapper">
+          <video id="tileVideo" class="knode-video" controls playsinline autoplay>
+            <source src="${data.videoUrl}" type="video/mp4" />
+          </video>
+          
+          <!-- Video Complete Overlay -->
+          <div class="knode-video-overlay" id="videoOverlay">
+            <div class="knode-completion-badge">✓ Video Complete</div>
+            <div class="knode-video-cta-buttons">
+              <button id="replayBtn" class="knode-btn secondary">⟳ Replay</button>
+              <button id="nxtBtn" class="knode-btn primary">Let's move on →</button>
+            </div>
+          </div>
         </div>
-
-        <div class="cta-overlay" id="ctaOverlay" style="display: none;">
-          <button id="nxtBtn" class="knode-btn">Let’s move on →</button>
-          <button id="replayBtn" class="knode-btn ghost">Replay ⟳</button>
+        
+        <!-- Video Info Bar -->
+        <div class="knode-video-info">
+          <span class="knode-video-topic">${data.topic || ''}</span>
+          <span class="knode-video-title">${data.title || ''}</span>
+          <span class="knode-video-duration">⏱ ${data.duration || ''}</span>
         </div>
-
+      </div>
+      
+      <!-- Sidebar -->
+      <div class="knode-tile-sidebar">
+        <!-- Progress Panel -->
+        <div class="knode-sidebar-panel">
+          <h3>📊 Progress</h3>
+          <div class="knode-sidebar-progress">
+            <div class="knode-sidebar-progress-label">
+              <span>Module Progress</span>
+              <span id="sidebarProgressText">${tileIndex + 1}/${tileData.length}</span>
+            </div>
+            <div class="knode-sidebar-progress-bar">
+              <div class="knode-sidebar-progress-fill" id="sidebarProgressFill" style="width: ${((tileIndex + 1) / tileData.length) * 100}%"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- XP Panel -->
+        <div class="knode-sidebar-panel">
+          <div class="knode-sidebar-xp">
+            <div class="knode-sidebar-xp-value" id="sidebarXP">${window.userXP || 0}</div>
+            <div class="knode-sidebar-xp-label">XP Earned</div>
+          </div>
+        </div>
+        
+        <!-- Notes Panel -->
+        <div class="knode-sidebar-panel knode-notes-area">
+          <h3>📝 Your Notes</h3>
+          <textarea class="knode-notes-textarea" id="sidebarNotes" placeholder="Jot down key points..."></textarea>
+        </div>
       </div>
     </div>
+  `;
 
-    <div class="knoments-header" onclick="toggleKnoments()">📝 Knoments (click to open/close)</div>
-    <div class="knoments-wrapper" id="knomentsWrapper">
-      <div class="scene-selector" id="sceneButtons"></div>
-      <div class="knoment-sticky-wrapper" id="knomentStickers"></div>
-      <div class="summarise-options">
-        <p><strong>Try a different summary format:</strong></p>
-        <button class="summary-btn">ELI5</button>
-        <button class="summary-btn">Sports Analogy</button>
-        <button class="summary-btn">Pop Culture</button>
-      </div>
-    </div>
-  </div>
-`;
+  // Video event handlers
+  const video = document.getElementById("tileVideo");
+  const overlay = document.getElementById("videoOverlay");
+  const replayBtn = document.getElementById("replayBtn");
+  const nxtBtn = document.getElementById("nxtBtn");
 
-  const scenes = data.scenes;
-  const sceneButtons = document.getElementById("sceneButtons");
-  const stickers = document.getElementById("knomentStickers");
-  Object.keys(scenes).forEach((sceneId, i) => {
-    const btn = document.createElement("button");
-    btn.className = `scene-btn ${i === 0 ? "active" : ""}`;
-    btn.textContent = `Scene ${sceneId}`;
-    btn.onclick = () => {
-      document.querySelectorAll(".scene-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      renderKnoments(scenes[sceneId], stickers);
+  if (video) {
+    video.onended = () => {
+      if (overlay) overlay.classList.add("visible");
+      // Award XP for completing video
+      awardXP(20);
+      console.log("[Video] Completed, overlay shown");
     };
-    sceneButtons.appendChild(btn);
-  });
+  }
 
-  renderKnoments(scenes[1], stickers);
+  if (replayBtn) {
+    replayBtn.onclick = () => {
+      if (overlay) overlay.classList.remove("visible");
+      if (video) {
+        video.currentTime = 0;
+        video.play();
+      }
+    };
+  }
 
-const video = document.getElementById("tileVideo");
-const ctaOverlay = document.getElementById("ctaOverlay");
-const replayBtn = document.getElementById("replayBtn");
-
-video.onended = () => {
-  ctaOverlay.style.display = "flex";
-};
-
-replayBtn.onclick = () => {
-  ctaOverlay.style.display = "none";
-  video.currentTime = 0;
-  video.play();
-};
-
- video.addEventListener("ended", () => {
-   document.getElementById("nxtBtn").style.display = "flex";
-    console.log("nextBtn Found and loaded");
-  });
-  
-  
-
-  document.getElementById("nxtBtn").onclick = () => {
-    navigateToTile(tileIndex + 1);
-  };
+  if (nxtBtn) {
+    nxtBtn.onclick = () => {
+      smoothScrollToNextTile();
+    };
+  }
 }
 
-
-function renderKnoments(knomentArr, container) {
-  container.innerHTML = "";
-  knomentArr.forEach(text => {
-    const div = document.createElement("div");
-    div.className = "knoment";
-    div.innerHTML = `<p>${text}</p><button class="copy-btn">Copy</button>`;
-    container.appendChild(div);
-  });
-}
-
-function toggleKnoments() {
-  const el = document.getElementById("knomentsWrapper");
-  el.style.display = el.style.display === "block" ? "none" : "block";
-}
+// Knoments functions removed (deprecated)
 
 
 function renderQuizTile(data) {
@@ -5746,6 +5764,9 @@ document.getElementById('quiz-submit')?.addEventListener('click', submitAnswers)
 
 </script>
 
+<!-- ============================================================
+     WEBFLOW BLOCK 8: Submit & Results Handler
+     ============================================================ -->
 <script>
 
 function submitAnswers() {
