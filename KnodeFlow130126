@@ -96,6 +96,46 @@ COLOR PALETTE:
   window.ENABLE_POLISH_ANIMATIONS = window.ENABLE_POLISH_ANIMATIONS !== false;
   window.ENABLE_CHAT_SHELL = window.ENABLE_CHAT_SHELL !== false;
   window.ENABLE_TWO_COLUMN_LAYOUT = true;
+  
+  // CRITICAL: Pre-declare Typewriter to prevent race condition errors
+  // The actual library loads later, but this prevents "not defined" errors
+  if (typeof window.Typewriter === 'undefined') {
+    window.Typewriter = class FallbackTypewriter {
+      constructor(el, opts = {}) {
+        this.el = el;
+        this.queue = [];
+        this.delay = opts.delay || 50;
+      }
+      typeString(str) { this.queue.push({ type: 'type', str }); return this; }
+      deleteAll() { this.queue.push({ type: 'delete' }); return this; }
+      pauseFor(ms) { this.queue.push({ type: 'pause', ms }); return this; }
+      callFunction(fn) { this.queue.push({ type: 'call', fn }); return this; }
+      start() {
+        this._run();
+        return this;
+      }
+      stop() { this.stopped = true; }
+      async _run() {
+        for (const item of this.queue) {
+          if (this.stopped) break;
+          if (item.type === 'type') {
+            for (let i = 0; i < item.str.length; i++) {
+              if (this.stopped) break;
+              this.el.innerHTML += item.str[i];
+              await new Promise(r => setTimeout(r, this.delay));
+            }
+          } else if (item.type === 'delete') {
+            this.el.innerHTML = '';
+          } else if (item.type === 'pause') {
+            await new Promise(r => setTimeout(r, item.ms));
+          } else if (item.type === 'call') {
+            item.fn();
+          }
+        }
+      }
+    };
+    window._TypewriterFallbackActive = true;
+  }
 </script>
 </head>
 
@@ -202,12 +242,13 @@ COLOR PALETTE:
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-heading: 'Space Grotesk', var(--font-body);
-  --font-accent: 'Caveat', cursive;
+  --font-accent: 'Teachers', 'Inter', sans-serif; /* Changed from Caveat to Teachers */
+  --font-explainer: 'Teachers', var(--font-body); /* Explainer/typewriter font */
   
   /* Layout - Two Column */
-  --content-width: 65%;
-  --sidebar-width: 35%;
-  --max-content-width: 1400px;
+  --content-width: 62%;
+  --sidebar-width: 34%;
+  --max-content-width: 1600px;
   --header-height: 56px;
   
   /* Spacing */
@@ -238,7 +279,7 @@ COLOR PALETTE:
 }
 
 /* ==================== BASE STYLES ==================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Teachers:wght@400;500;600;700&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -354,97 +395,131 @@ body {
 /* ==================== TILE NAVIGATION DOTS ==================== */
 .knode-tile-nav {
   position: fixed;
-  right: var(--space-lg);
+  right: 24px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: 12px;
   z-index: 100;
+  background: rgba(255,255,255,0.9);
+  padding: 16px 12px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
 }
 
 .knode-tile-dot {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0,0,0,0.15);
   border: 2px solid transparent;
   cursor: pointer;
-  transition: all var(--duration-fast) ease;
+  transition: all var(--duration-med) var(--ease-out);
+  position: relative;
+}
+
+.knode-tile-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: transparent;
 }
 
 .knode-tile-dot:hover {
   background: rgba(139,92,246,0.4);
+  transform: scale(1.2);
 }
 
 .knode-tile-dot.active {
   background: var(--knode-accent);
   border-color: var(--knode-surface);
-  box-shadow: 0 0 0 2px var(--knode-accent);
+  box-shadow: 0 0 0 3px var(--knode-accent), 0 0 12px rgba(139,92,246,0.5);
+  transform: scale(1.25);
 }
 
 .knode-tile-dot.completed {
   background: var(--knode-success);
 }
 
+.knode-tile-dot.completed::before {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: white;
+  font-weight: bold;
+}
+
 /* ==================== MAIN TILE CONTAINER ==================== */
 .knode-tile-container {
-  margin-top: var(--header-height);
-  min-height: calc(100vh - var(--header-height));
+  min-height: 100vh;
   scroll-behavior: smooth;
 }
 
 /* ==================== TWO-COLUMN TILE LAYOUT ==================== */
 .knode-tile {
-  min-height: calc(100vh - var(--header-height));
+  min-height: 100vh;
   display: flex;
   flex-direction: row;
   max-width: var(--max-content-width);
   margin: 0 auto;
-  padding: var(--space-xl);
+  padding: var(--space-xl) var(--space-xl) var(--space-xl) var(--space-xl);
+  padding-right: 80px; /* Space for tile nav */
   gap: var(--space-xl);
+  align-items: flex-start;
 }
 
 .knode-tile-main {
-  flex: 0 0 var(--content-width);
-  display: flex;
-  flex-direction: column;
-}
-
-.knode-tile-sidebar {
-  flex: 0 0 var(--sidebar-width);
+  flex: 1 1 var(--content-width);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
 }
 
-/* ==================== VIDEO TILE STYLES ==================== */
+.knode-tile-sidebar {
+  flex: 0 0 var(--sidebar-width);
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  position: sticky;
+  top: var(--space-xl);
+}
+
+/* ==================== VIDEO TILE STYLES (Desktop: 16:9) ==================== */
 .knode-video-wrapper {
   position: relative;
   width: 100%;
   aspect-ratio: 16/9;
-  background: var(--knode-bg);
+  background: #000;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
 .knode-video {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: var(--knode-bg);
+  background: #000;
 }
 
 .knode-video-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
+  gap: var(--space-lg);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--duration-med) ease;
@@ -455,16 +530,35 @@ body {
   pointer-events: auto;
 }
 
-.knode-video-complete-badge {
+.knode-completion-badge {
   background: var(--knode-success);
   color: white;
   padding: var(--space-sm) var(--space-lg);
   border-radius: 999px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.125rem;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  box-shadow: 0 4px 20px rgba(16,185,129,0.4);
+  animation: badgePop 0.5s var(--ease-bounce);
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.knode-video-cta-buttons {
+  display: flex;
+  gap: var(--space-md);
+  animation: fadeUp 0.4s ease 0.2s both;
+}
+
+@keyframes fadeUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* ==================== SIDEBAR PANELS ==================== */
@@ -847,7 +941,7 @@ body {
   margin-top: var(--space-md);
 }
 
-/* ==================== DESKTOP: Hide Header on Large Screens ==================== */
+/* ==================== DESKTOP LAYOUT ==================== */
 @media (min-width: 769px) {
   .knode-sticky-header {
     display: none;
@@ -860,6 +954,85 @@ body {
   .knode-tile {
     min-height: 100vh;
     padding-top: var(--space-2xl);
+    padding-bottom: var(--space-2xl);
+  }
+  
+  /* Show sidebar on desktop */
+  .knode-tile-sidebar {
+    display: flex !important;
+  }
+  
+  /* Tile nav visible on desktop */
+  .knode-tile-nav {
+    display: flex !important;
+  }
+}
+
+/* ==================== MOBILE: TikTok-style Video ==================== */
+@media (max-width: 768px) {
+  .knode-sticky-header {
+    display: flex;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+  }
+  
+  .knode-tile-container {
+    margin-top: var(--header-height);
+  }
+  
+  .knode-tile {
+    flex-direction: column;
+    padding: 0;
+    padding-right: 0;
+    gap: 0;
+    min-height: calc(100vh - var(--header-height));
+  }
+  
+  .knode-tile-main {
+    flex: 1;
+    width: 100%;
+  }
+  
+  /* Hide sidebar on mobile - use modal instead */
+  .knode-tile-sidebar {
+    display: none !important;
+  }
+  
+  /* Hide tile nav on mobile */
+  .knode-tile-nav {
+    display: none !important;
+  }
+  
+  /* TikTok-style video: 85% screen height, full width */
+  .knode-video-wrapper {
+    aspect-ratio: unset;
+    width: 100%;
+    height: 85vh;
+    border-radius: 0;
+    background: #000;
+  }
+  
+  .knode-video {
+    object-fit: cover;
+  }
+  
+  /* Video info as overlay on mobile */
+  .knode-video-info {
+    position: absolute;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    padding: var(--space-md);
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    color: white;
+  }
+  
+  .knode-video-info .knode-video-title {
+    color: white;
+  }
+  
+  .knode-video-info .knode-video-duration {
+    color: rgba(255,255,255,0.8);
   }
 }
 
@@ -877,9 +1050,9 @@ body {
 
 /* ==================== STABLE FRAME CONTAINERS ==================== */
 .kn-frame {
-  width: var(--kn-frame-w);
-  min-height: var(--kn-frame-h);
-  max-height: var(--kn-frame-h);
+  width: 100%;
+  max-width: 900px;
+  min-height: clamp(500px, 80vh, 850px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -894,14 +1067,14 @@ body {
 }
 
 .kn-frame--chat {
-  min-height: var(--kn-chat-h);
-  max-height: var(--kn-chat-h);
+  min-height: clamp(500px, 80vh, 850px);
+  max-height: none;
   background: linear-gradient(to bottom, #fdfdfd, #f6f2ff);
 }
 
 .kn-frame--mcq {
-  min-height: var(--kn-mcq-h);
-  max-height: var(--kn-mcq-h);
+  min-height: clamp(500px, 80vh, 850px);
+  max-height: none;
 }
 
 .kn-frame__content {
@@ -2310,14 +2483,14 @@ h1, h2, h3, h4, .kn-heading {
   }
 
   #typewriter {
-    font-family: var(--font-accent, 'Caveat'), cursive;
-    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    font-family: var(--font-explainer, 'Teachers', 'Inter', sans-serif);
+    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
     font-weight: 500;
     white-space: pre-wrap;
-    min-height: 260px;
-    line-height: 1.9;
+    min-height: 200px;
+    line-height: 1.75;
     letter-spacing: 0.01em;
-    color: #1f2937;
+    color: var(--knode-text, #1f2937);
     position: relative;
     padding: 1.5rem 1.75rem;
     background: rgba(255, 255, 255, 0.7);
@@ -5114,6 +5287,10 @@ function navigateToTile(nextIndex) {
       tileIndex = nextIndex;
       renderTile(tileIndex);
       
+      // Update progress displays
+      if (typeof updateHeaderProgress === 'function') updateHeaderProgress();
+      if (typeof updateTileNav === 'function') updateTileNav();
+      
       const newChild = container.firstElementChild;
       if (newChild) {
         // Setup enter animation
@@ -5138,6 +5315,10 @@ function navigateToTile(nextIndex) {
     // First tile - just render and animate in
     tileIndex = nextIndex;
     renderTile(tileIndex);
+    
+    // Update progress displays
+    if (typeof updateHeaderProgress === 'function') updateHeaderProgress();
+    if (typeof updateTileNav === 'function') updateTileNav();
     
     const newChild = container.firstElementChild;
     if (newChild) {
