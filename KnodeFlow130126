@@ -460,37 +460,46 @@ body {
 .knode-tile-container {
   min-height: 100vh;
   scroll-behavior: smooth;
+  overflow: visible;
+}
+
+#knodeTileContainer {
+  overflow: visible !important;
 }
 
 /* ==================== TWO-COLUMN TILE LAYOUT ==================== */
 .knode-tile {
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: row;
   max-width: var(--max-content-width);
   margin: 0 auto;
-  padding: var(--space-xl) var(--space-xl) var(--space-xl) var(--space-xl);
-  padding-right: 80px; /* Space for tile nav */
-  gap: var(--space-xl);
+  padding: var(--space-xl);
+  padding-right: 100px; /* Space for tile nav */
+  gap: var(--space-2xl);
   align-items: flex-start;
+  overflow: visible;
 }
 
 .knode-tile-main {
-  flex: 1 1 var(--content-width);
+  flex: 1 1 60%;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  overflow: visible;
 }
 
 .knode-tile-sidebar {
-  flex: 0 0 var(--sidebar-width);
+  flex: 0 0 320px;
+  min-width: 280px;
   max-width: 380px;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
   position: sticky;
   top: var(--space-xl);
+  overflow: visible;
 }
 
 /* ==================== VIDEO TILE STYLES (Desktop: 16:9) ==================== */
@@ -1003,37 +1012,125 @@ body {
     display: none !important;
   }
   
-  /* TikTok-style video: 85% screen height, full width */
+  /* Mobile video: responsive height, full video visible */
   .knode-video-wrapper {
     aspect-ratio: unset;
     width: 100%;
-    height: 85vh;
+    height: auto;
+    min-height: 50vh;
+    max-height: 70vh;
     border-radius: 0;
     background: #000;
   }
   
   .knode-video {
-    object-fit: cover;
+    object-fit: contain !important;
+    max-height: 70vh;
   }
   
-  /* Video info as overlay on mobile */
+  /* Video info below video on mobile */
   .knode-video-info {
-    position: absolute;
-    bottom: 80px;
-    left: 0;
-    right: 0;
+    position: relative;
     padding: var(--space-md);
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    color: white;
+    background: var(--knode-surface);
   }
   
   .knode-video-info .knode-video-title {
-    color: white;
+    color: var(--knode-text);
   }
   
   .knode-video-info .knode-video-duration {
-    color: rgba(255,255,255,0.8);
+    color: var(--knode-text-muted);
   }
+}
+
+/* ==================== CERTIFICATE VIEW ==================== */
+.knode-certificate-view {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: linear-gradient(135deg, #faf8ff 0%, #f0ebff 100%);
+}
+
+.knode-certificate-content {
+  text-align: center;
+  max-width: 600px;
+  animation: certificateFadeIn 0.6s var(--ease-out);
+}
+
+@keyframes certificateFadeIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.knode-certificate-badge {
+  font-size: 4rem;
+  margin-bottom: var(--space-md);
+  animation: badgeBounce 0.6s var(--ease-bounce) 0.3s both;
+}
+
+@keyframes badgeBounce {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.knode-certificate-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 700;
+  color: var(--knode-primary);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.knode-certificate-subtitle {
+  font-size: 1.125rem;
+  color: var(--knode-text-muted);
+  margin: 0 0 var(--space-xl) 0;
+}
+
+.knode-certificate-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2xl);
+  margin-bottom: var(--space-xl);
+}
+
+.knode-certificate-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.knode-certificate-stat-value {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--knode-accent);
+}
+
+.knode-certificate-stat-label {
+  font-size: 0.875rem;
+  color: var(--knode-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.knode-certificate-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.knode-certificate-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
 }
 
 /* ==================== REDUCED MOTION ==================== */
@@ -1174,7 +1271,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--kn-gap-lg);
+  padding: var(--space-xl, 2rem);
   background: #fafafa;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
@@ -1196,8 +1293,8 @@ body {
 /* ==================== CHAT MESSAGE BUBBLES ==================== */
 .kn-msg {
   display: flex;
-  gap: var(--kn-gap-sm);
-  margin-bottom: var(--kn-gap-md);
+  gap: var(--space-md, 1rem);
+  margin-bottom: var(--space-lg, 1.5rem);
   align-items: flex-end;
   animation: kn-msg-enter var(--kn-fast) var(--kn-ease) both;
   will-change: transform, opacity;
@@ -1208,8 +1305,8 @@ body {
 }
 
 .kn-chat-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1230,11 +1327,11 @@ body {
 
 .kn-chat-bubble {
   font-family: var(--font-body, 'Inter', sans-serif);
-  max-width: 70%;
-  padding: 0.875rem 1.125rem;
+  max-width: 75%;
+  padding: 1rem 1.25rem;
   border-radius: 18px;
-  font-size: var(--kn-text-sm, 0.9375rem);
-  line-height: 1.55;
+  font-size: 1rem;
+  line-height: 1.6;
   word-wrap: break-word;
   position: relative;
   will-change: transform, opacity;
@@ -2578,14 +2675,13 @@ h1, h2, h3, h4, .kn-heading {
 /* Each tile snaps full screen */
 
 
-/* Fullscreen background video */
+/* Video element - MUST use contain to show full video */
 .knode-video {
-  width: 95%;
-  height: 95%;
-  object-fit: cover;
-  border-radius: 12px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  background: #000;
   display: block;
-  margin: 0 auto;
 }
 
 
@@ -3102,10 +3198,11 @@ body, .learning-shell{
 }
 
 .scenario-options { 
-  margin-top: 16px; 
+  margin-top: 24px; 
   display: flex; 
-  gap: 12px; 
+  gap: 16px; 
   flex-wrap: wrap; 
+  padding: 8px 0;
 }
 * ==================== CHAT SHELL ENHANCEMENTS ==================== */
 /* Note: Base chat shell styles are defined in embeddable-all.html and knodeFlow */
@@ -5267,9 +5364,15 @@ function navigateToTile(nextIndex) {
   const container = document.getElementById('knodeTileContainer');
   if (!container) { return renderTile(nextIndex); }
   
-  // Validate next index
-  if (nextIndex < 0 || nextIndex >= tileData.length) {
-    console.log('[navigateToTile] Reached end of tiles');
+  // Validate next index - show certificate at end
+  if (nextIndex < 0) {
+    console.log('[navigateToTile] Already at first tile');
+    return;
+  }
+  
+  if (nextIndex >= tileData.length) {
+    console.log('[navigateToTile] Reached end of tiles - showing certificate');
+    showCompletionCertificate();
     return;
   }
   
@@ -6867,6 +6970,72 @@ function awardXP(amount) {
   if (headerXP) headerXP.textContent = `${window.userXP} XP`;
   
   console.log(`[XP] Awarded ${amount}XP, total: ${window.userXP}`);
+}
+
+/**
+ * Show completion certificate at end of module
+ */
+function showCompletionCertificate() {
+  const container = document.getElementById('knodeTileContainer');
+  if (!container) return;
+  
+  // Certificate image URL
+  const certificateUrl = 'https://udpxwtntstojffxvzqxb.supabase.co/storage/v1/object/sign/Videos/IMG_2656.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWVmMmQ2ZC1iN2VlLTQ2ZGQtYmFkZi02YTg0MzhmYTJhYTciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJWaWRlb3MvSU1HXzI2NTYucG5nIiwiaWF0IjoxNzY4NDg1MzMxLCJleHAiOjE4MDAwMjEzMzF9.eKuxv_svzrb-3Ub9XYy1edyt1omrQqRl1o6UoiK8x_U';
+  
+  // Hide tile nav
+  const tileNav = document.getElementById('knode-tile-nav');
+  if (tileNav) tileNav.style.display = 'none';
+  
+  // Render certificate view
+  container.innerHTML = `
+    <div class="knode-certificate-view">
+      <div class="knode-certificate-content">
+        <div class="knode-certificate-badge">🎉</div>
+        <h1 class="knode-certificate-title">Congratulations!</h1>
+        <p class="knode-certificate-subtitle">You've completed this learning module</p>
+        
+        <div class="knode-certificate-stats">
+          <div class="knode-certificate-stat">
+            <span class="knode-certificate-stat-value">${tileData.length}</span>
+            <span class="knode-certificate-stat-label">Tiles Completed</span>
+          </div>
+          <div class="knode-certificate-stat">
+            <span class="knode-certificate-stat-value">${window.userXP || 0}</span>
+            <span class="knode-certificate-stat-label">XP Earned</span>
+          </div>
+        </div>
+        
+        <img src="${certificateUrl}" alt="Completion Certificate" class="knode-certificate-image" />
+        
+        <div class="knode-certificate-actions">
+          <button class="knode-btn primary" onclick="window.location.href='/'">Back to Dashboard</button>
+          <button class="knode-btn secondary" onclick="restartModule()">Restart Module</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Update header to show complete
+  const headerTileCount = document.getElementById('headerTileCount');
+  if (headerTileCount) headerTileCount.textContent = 'Complete!';
+  
+  const headerProgressFill = document.getElementById('headerProgressFill');
+  if (headerProgressFill) headerProgressFill.style.width = '100%';
+  
+  console.log('[Certificate] Module completed!');
+}
+
+/**
+ * Restart the module from the beginning
+ */
+function restartModule() {
+  tileIndex = 0;
+  window.userXP = 0;
+  navigateToTile(0);
+  
+  // Show tile nav again
+  const tileNav = document.getElementById('knode-tile-nav');
+  if (tileNav) tileNav.style.display = 'flex';
 }
 
 /**
