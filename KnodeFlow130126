@@ -144,9 +144,10 @@ COLOR PALETTE:
      ============================================================ -->
 <div id="knodewrapper">
   
-  <!-- Sticky Header Bar (Mobile) - Progress, XP, Notes -->
+  <!-- Floating Progress Bar - Progress, Title, XP -->
   <div id="knode-sticky-header" class="knode-sticky-header">
     <button class="knode-header-back" id="headerBackBtn" aria-label="Go back">←</button>
+    <span class="knode-header-title" id="headerTitle">Learning Module</span>
     <div class="knode-header-progress">
       <span id="headerTileCount">1/5</span>
       <div class="knode-header-progress-bar">
@@ -154,7 +155,6 @@ COLOR PALETTE:
       </div>
     </div>
     <div class="knode-header-xp" id="headerXP">0 XP</div>
-    <button class="knode-header-notes" id="headerNotesBtn" aria-label="Open notes">📝</button>
   </div>
 
   <!-- Tile Navigation Dots -->
@@ -297,60 +297,75 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ==================== STICKY HEADER BAR ==================== */
+/* ==================== STICKY FLOATING BAR ==================== */
 .knode-sticky-header {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--header-height);
-  background: var(--knode-surface);
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  max-width: calc(100% - 32px);
+  height: auto;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 999px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--space-md);
+  justify-content: center;
+  gap: var(--space-lg);
   z-index: 1000;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
 .knode-header-back {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: none;
-  background: transparent;
-  font-size: 1.25rem;
+  background: rgba(0,0,0,0.05);
+  font-size: 1rem;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--knode-text);
-  transition: background var(--duration-fast) ease;
+  transition: all var(--duration-fast) ease;
 }
 
 .knode-header-back:hover {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.1);
+}
+
+/* Video/Content Title in Header */
+.knode-header-title {
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--knode-text);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .knode-header-progress {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  flex: 1;
-  max-width: 200px;
-  margin: 0 var(--space-md);
 }
 
 .knode-header-progress span {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--knode-primary);
   white-space: nowrap;
 }
 
 .knode-header-progress-bar {
-  flex: 1;
+  width: 80px;
   height: 6px;
   background: rgba(139,92,246,0.15);
   border-radius: 999px;
@@ -366,47 +381,52 @@ body {
 }
 
 .knode-header-xp {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--knode-accent);
-  padding: var(--space-xs) var(--space-sm);
+  padding: 6px 12px;
   background: rgba(139,92,246,0.1);
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .knode-header-notes {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: none;
-  background: transparent;
-  font-size: 1.25rem;
+  background: rgba(0,0,0,0.05);
+  font-size: 1rem;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--duration-fast) ease;
+  transition: all var(--duration-fast) ease;
 }
 
 .knode-header-notes:hover {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.1);
 }
 
-/* ==================== TILE NAVIGATION DOTS ==================== */
+/* Responsive floating bar */
+@media (max-width: 600px) {
+  .knode-sticky-header {
+    gap: var(--space-sm);
+    padding: 10px 16px;
+  }
+  
+  .knode-header-title {
+    display: none;
+  }
+  
+  .knode-header-progress-bar {
+    width: 60px;
+  }
+}
+
+/* ==================== TILE NAVIGATION DOTS (Hidden - using floating bar) ==================== */
 .knode-tile-nav {
-  position: fixed;
-  right: 24px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  z-index: 100;
-  background: rgba(255,255,255,0.9);
-  padding: 16px 12px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(8px);
+  display: none;
 }
 
 .knode-tile-dot {
@@ -460,46 +480,37 @@ body {
 .knode-tile-container {
   min-height: 100vh;
   scroll-behavior: smooth;
-  overflow: visible;
+  padding-top: var(--header-height);
 }
 
 #knodeTileContainer {
   overflow: visible !important;
 }
 
-/* ==================== TWO-COLUMN TILE LAYOUT ==================== */
+/* ==================== SINGLE COLUMN TILE LAYOUT ==================== */
 .knode-tile {
-  min-height: auto;
+  min-height: calc(100vh - var(--header-height));
   display: flex;
-  flex-direction: row;
-  max-width: var(--max-content-width);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-xl);
-  padding-right: 100px; /* Space for tile nav */
-  gap: var(--space-2xl);
-  align-items: flex-start;
-  overflow: visible;
+  gap: var(--space-lg);
 }
 
 .knode-tile-main {
-  flex: 1 1 60%;
-  min-width: 0;
+  width: 100%;
+  max-width: 900px;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
-  overflow: visible;
 }
 
+/* Hide sidebar - using floating bar instead */
 .knode-tile-sidebar {
-  flex: 0 0 320px;
-  min-width: 280px;
-  max-width: 380px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-  position: sticky;
-  top: var(--space-xl);
-  overflow: visible;
+  display: none !important;
 }
 
 /* ==================== VIDEO TILE STYLES (Desktop: 16:9) ==================== */
@@ -950,97 +961,23 @@ body {
   margin-top: var(--space-md);
 }
 
-/* ==================== DESKTOP LAYOUT ==================== */
+/* ==================== DESKTOP ENHANCEMENTS ==================== */
 @media (min-width: 769px) {
-  .knode-sticky-header {
-    display: none;
-  }
-  
-  .knode-tile-container {
-    margin-top: 0;
-  }
-  
   .knode-tile {
-    min-height: 100vh;
     padding-top: var(--space-2xl);
     padding-bottom: var(--space-2xl);
   }
-  
-  /* Show sidebar on desktop */
-  .knode-tile-sidebar {
-    display: flex !important;
-  }
-  
-  /* Tile nav visible on desktop */
-  .knode-tile-nav {
-    display: flex !important;
-  }
 }
 
-/* ==================== MOBILE: TikTok-style Video ==================== */
+/* ==================== MOBILE ADJUSTMENTS ==================== */
 @media (max-width: 768px) {
-  .knode-sticky-header {
-    display: flex;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(12px);
-  }
-  
-  .knode-tile-container {
-    margin-top: var(--header-height);
-  }
-  
   .knode-tile {
-    flex-direction: column;
-    padding: 0;
-    padding-right: 0;
-    gap: 0;
-    min-height: calc(100vh - var(--header-height));
-  }
-  
-  .knode-tile-main {
-    flex: 1;
-    width: 100%;
-  }
-  
-  /* Hide sidebar on mobile - use modal instead */
-  .knode-tile-sidebar {
-    display: none !important;
-  }
-  
-  /* Hide tile nav on mobile */
-  .knode-tile-nav {
-    display: none !important;
-  }
-  
-  /* Mobile video: responsive height, full video visible */
-  .knode-video-wrapper {
-    aspect-ratio: unset;
-    width: 100%;
-    height: auto;
-    min-height: 50vh;
-    max-height: 70vh;
-    border-radius: 0;
-    background: #000;
-  }
-  
-  .knode-video {
-    object-fit: contain !important;
-    max-height: 70vh;
-  }
-  
-  /* Video info below video on mobile */
-  .knode-video-info {
-    position: relative;
     padding: var(--space-md);
-    background: var(--knode-surface);
+    padding-top: 80px; /* Space for floating bar */
   }
   
-  .knode-video-info .knode-video-title {
-    color: var(--knode-text);
-  }
-  
-  .knode-video-info .knode-video-duration {
-    color: var(--knode-text-muted);
+  .knode-video-wrapper {
+    border-radius: var(--radius-md);
   }
 }
 
@@ -5764,15 +5701,15 @@ function renderTile(index) {
 
   
  function renderVideoTile(data) {
- const container = document.getElementById("knodeTileContainer");
- console.log("[renderVideoTile] Two-column layout:", data);
+  const container = document.getElementById("knodeTileContainer");
+  console.log("[renderVideoTile] Single column layout:", data);
   
-  // Update header progress
+  // Update header progress and title
   updateHeaderProgress();
+  updateHeaderTitle(data.title || 'Video');
 
   container.innerHTML = `
     <div class="knode-tile" id="videoTile-${tileIndex}">
-      <!-- Main Content Area (Video) -->
       <div class="knode-tile-main">
         <div class="knode-video-wrapper">
           <video id="tileVideo" class="knode-video" controls playsinline autoplay>
@@ -5794,37 +5731,6 @@ function renderTile(index) {
           <span class="knode-video-topic">${data.topic || ''}</span>
           <span class="knode-video-title">${data.title || ''}</span>
           <span class="knode-video-duration">⏱ ${data.duration || ''}</span>
-        </div>
-      </div>
-      
-      <!-- Sidebar -->
-      <div class="knode-tile-sidebar">
-        <!-- Progress Panel -->
-        <div class="knode-sidebar-panel">
-          <h3>📊 Progress</h3>
-          <div class="knode-sidebar-progress">
-            <div class="knode-sidebar-progress-label">
-              <span>Module Progress</span>
-              <span id="sidebarProgressText">${tileIndex + 1}/${tileData.length}</span>
-            </div>
-            <div class="knode-sidebar-progress-bar">
-              <div class="knode-sidebar-progress-fill" id="sidebarProgressFill" style="width: ${((tileIndex + 1) / tileData.length) * 100}%"></div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- XP Panel -->
-        <div class="knode-sidebar-panel">
-          <div class="knode-sidebar-xp">
-            <div class="knode-sidebar-xp-value" id="sidebarXP">${window.userXP || 0}</div>
-            <div class="knode-sidebar-xp-label">XP Earned</div>
-          </div>
-        </div>
-        
-        <!-- Notes Panel -->
-        <div class="knode-sidebar-panel knode-notes-area">
-          <h3>📝 Your Notes</h3>
-          <textarea class="knode-notes-textarea" id="sidebarNotes" placeholder="Jot down key points..."></textarea>
         </div>
       </div>
     </div>
@@ -6934,9 +6840,16 @@ function updateHeaderProgress() {
   if (headerXP) {
     headerXP.textContent = `${window.userXP || 0} XP`;
   }
-  
-  // Update tile navigation dots
-  updateTileNav();
+}
+
+/**
+ * Update header title
+ */
+function updateHeaderTitle(title) {
+  const headerTitle = document.getElementById("headerTitle");
+  if (headerTitle) {
+    headerTitle.textContent = title || 'Learning Module';
+  }
 }
 
 /**
