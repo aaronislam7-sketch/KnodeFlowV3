@@ -1941,16 +1941,8 @@ h1, h2, h3, h4, .kn-heading {
   width: 100%;
 }
 
-.knode-tile {
-  height: 100vh;
-  scroll-snap-align: start;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
+/* Legacy .knode-tile rules removed - now using two-column layout defined earlier */
+/* See line ~470 for the main .knode-tile flex layout */
 
 /* Pill group at the top - Fixed positioning to protect space */
 .pill-group {
@@ -2690,16 +2682,22 @@ h1, h2, h3, h4, .kn-heading {
   display: none !important;
 }
 
+/* .full-screen-tile - for quiz tiles that need centered content */
 .knode-tile.full-screen-tile {
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-xl);
+  overflow: visible;
+  position: relative;
+}
+
+/* Full-screen tiles still use row layout with sidebar */
+.knode-tile.full-screen-tile .knode-tile-main {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  align-items: center; /* Add this if not already present */
-  padding: 0;
-  overflow: hidden; /* Prevent content from overflowing */
-  position: relative;
+  justify-content: center;
+  align-items: center;
 }
 
 .quiz-whiteboard {
