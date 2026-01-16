@@ -22,8 +22,8 @@ The code is organized into multiple <script> blocks for Webflow compatibility.
 Each block is marked with a comment: <!-- WEBFLOW BLOCK N: Description -->
 
 Block 0:   Feature Flags & Configuration
-Block 0.5: Main HTML Structure (header, tiles, modals)
-Block 1:   Main CSS Styles (two-column layout, responsive)
+Block 0.5: Main HTML Structure (floating bar, tiles)
+Block 1:   Main CSS Styles (single column, responsive)
 Block 2:   Animations & ChatShell Module
 Block 3:   Text Quiz Tile Renderer
 Block 4:   Scenario Tile Renderer
@@ -33,24 +33,22 @@ Block 7:   Core Tile Rendering & Navigation
            - tileData[]: Array of content tiles
            - navigateToTile(): Smooth transitions
            - renderTile(): Dispatcher
-           - renderVideoTile(): Two-column video layout
+           - renderVideoTile(): Video with floating bar
            - renderQuizTile(): MCQ quiz
            - renderChatQuizTile(): Chat-style quizzes
 Block 8:   Submit & Results Handler
            - submitAnswers(): POST to Supabase
            - SequencePlayer: Audio + typewriter + annotations
 
-LAYOUT (Two-Column):
---------------------
-Desktop: Content (65%) | Sidebar (35%)
-  - Sidebar: Progress, XP, Notes panels
-Mobile: Full-width content + Sticky header
-  - Header: Back, Progress, XP, Notes button
-  - Notes accessible via modal
+LAYOUT:
+-------
+- Single centered column (max-width: 900px)
+- Floating progress bar at top (title, progress, XP)
+- Consistent across all screen sizes
 
 CONTENT TYPES:
 --------------
-- "video": Video tile with two-column layout
+- "video": Video tile with centered layout
 - "mcqQuiz": Multiple choice quiz with progress bar
 - "chatQuiz": Chat-style quiz (supports 3 modes):
     - legacy: Original chat with options
@@ -95,7 +93,6 @@ COLOR PALETTE:
   // Feature flags for polish improvements
   window.ENABLE_POLISH_ANIMATIONS = window.ENABLE_POLISH_ANIMATIONS !== false;
   window.ENABLE_CHAT_SHELL = window.ENABLE_CHAT_SHELL !== false;
-  window.ENABLE_TWO_COLUMN_LAYOUT = true;
   
   // CRITICAL: Pre-declare Typewriter to prevent race condition errors
   // The actual library loads later, but this prevents "not defined" errors
@@ -222,8 +219,8 @@ COLOR PALETTE:
      ============================================================ -->
 <style>
 /**
- * KnodeFlow CSS - Two-Column Layout with Sticky Header
- * Optimized for learning experience with video left, sidebar right
+ * KnodeFlow CSS - Single Column Layout with Floating Progress Bar
+ * Centered content with floating pill-shaped progress indicator
  */
 
 /* ==================== CSS VARIABLES ==================== */
@@ -245,10 +242,8 @@ COLOR PALETTE:
   --font-accent: 'Teachers', 'Inter', sans-serif; /* Changed from Caveat to Teachers */
   --font-explainer: 'Teachers', var(--font-body); /* Explainer/typewriter font */
   
-  /* Layout - Two Column */
-  --content-width: 62%;
-  --sidebar-width: 34%;
-  --max-content-width: 1600px;
+  /* Layout */
+  --content-max-width: 900px;
   --header-height: 56px;
   
   /* Spacing */
@@ -508,7 +503,7 @@ body {
   gap: var(--space-lg);
 }
 
-/* Hide sidebar - using floating bar instead */
+/* Sidebar element hidden */
 .knode-tile-sidebar {
   display: none !important;
 }
@@ -581,97 +576,7 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ==================== SIDEBAR PANELS ==================== */
-.knode-sidebar-panel {
-  background: var(--knode-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(0,0,0,0.06);
-}
-
-.knode-sidebar-panel h3 {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--knode-primary);
-  margin: 0 0 var(--space-md) 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.knode-sidebar-progress {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.knode-sidebar-progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem;
-  color: var(--knode-text-muted);
-}
-
-.knode-sidebar-progress-bar {
-  height: 8px;
-  background: rgba(139,92,246,0.15);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.knode-sidebar-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--knode-accent), var(--knode-primary));
-  border-radius: 999px;
-  transition: width var(--duration-med) var(--ease-out);
-}
-
-.knode-sidebar-xp {
-  text-align: center;
-  padding: var(--space-md);
-  background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(55,48,163,0.1));
-  border-radius: var(--radius-md);
-}
-
-.knode-sidebar-xp-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--knode-accent);
-}
-
-.knode-sidebar-xp-label {
-  font-size: 0.75rem;
-  color: var(--knode-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.knode-notes-area {
-  min-height: 120px;
-}
-
-.knode-notes-textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: var(--space-sm);
-  border: 1px solid rgba(0,0,0,0.1);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-accent);
-  font-size: 1rem;
-  resize: vertical;
-  transition: border-color var(--duration-fast) ease;
-}
-
-.knode-notes-textarea:focus {
-  outline: none;
-  border-color: var(--knode-accent);
-}
-
-.knode-notes-textarea::placeholder {
-  color: var(--knode-text-muted);
-}
+/* Sidebar panels removed - using floating bar instead */
 
 /* ==================== QUIZ TILE STYLES ==================== */
 .knode-quiz-container {
@@ -862,22 +767,10 @@ body {
   margin-top: var(--space-md);
 }
 
-/* ==================== MOBILE RESPONSIVE ==================== */
-@media (max-width: 1024px) {
-  :root {
-    --content-width: 60%;
-    --sidebar-width: 40%;
-  }
-}
-
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
-  /* Hide desktop sidebar on mobile */
-  .knode-tile-sidebar {
-    display: none;
-  }
-  
   .knode-tile-main {
-    flex: 1;
+    width: 100%;
   }
   
   .knode-tile {
@@ -1878,8 +1771,7 @@ h1, h2, h3, h4, .kn-heading {
   width: 100%;
 }
 
-/* Legacy .knode-tile rules removed - now using two-column layout defined earlier */
-/* See line ~470 for the main .knode-tile flex layout */
+/* Legacy .knode-tile rules removed - using single column layout */
 
 /* Pill group at the top - Fixed positioning to protect space */
 .pill-group {
@@ -2629,7 +2521,7 @@ h1, h2, h3, h4, .kn-heading {
   position: relative;
 }
 
-/* Full-screen tiles still use row layout with sidebar */
+/* Full-screen tiles - centered content */
 .knode-tile.full-screen-tile .knode-tile-main {
   display: flex;
   flex-direction: column;
@@ -6816,7 +6708,7 @@ sequencePlayer.playSequence(window.cachedResults,0);
 // sequencePlayer.debugAnnotations();
 
 /* ============================================================
-   WEBFLOW BLOCK 6.5: Helper Functions for Two-Column Layout
+   WEBFLOW BLOCK 6.5: Helper Functions for Floating Bar
    ============================================================ */
 
 // Initialize user XP
@@ -6871,10 +6763,6 @@ function updateTileNav() {
  */
 function awardXP(amount) {
   window.userXP = (window.userXP || 0) + amount;
-  
-  // Update sidebar XP
-  const sidebarXP = document.getElementById("sidebarXP");
-  if (sidebarXP) sidebarXP.textContent = window.userXP;
   
   // Update header XP
   const headerXP = document.getElementById("headerXP");
